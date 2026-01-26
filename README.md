@@ -64,6 +64,12 @@ RealAgent/
 ├── Agent.py                    # Main scraping engine
 ├── Dashboard.py                # Flask web interface
 ├── Mainframe.db               # SQLite database
+├── setup/                     # Installation scripts
+│   ├── install.sh            # macOS/Linux installer
+│   ├── install.bat           # Windows batch installer
+│   ├── install.ps1           # Windows PowerShell installer
+│   ├── README.md             # Setup documentation
+│   └── INSTALLATION_COMPLETE.md
 ├── Helper/                    # Core modules
 │   ├── database.py           # Database operations
 │   ├── builder.py            # Universal template builder
@@ -109,13 +115,34 @@ RealAgent/
 
 #### One-Command Setup (Recommended)
 
+**macOS / Linux:**
 ```bash
 # Clone the repository
 git clone https://github.com/Inquisitor2000/RealAgent.git
 cd RealAgent
 
 # Run the installer (handles everything automatically)
-bash install.sh
+bash setup/install.sh
+```
+
+**Windows (Command Prompt):**
+```cmd
+REM Clone the repository
+git clone https://github.com/Inquisitor2000/RealAgent.git
+cd RealAgent
+
+REM Run the installer
+setup\install.bat
+```
+
+**Windows (PowerShell):**
+```powershell
+# Clone the repository
+git clone https://github.com/Inquisitor2000/RealAgent.git
+cd RealAgent
+
+# Run the installer
+powershell -ExecutionPolicy Bypass -File setup\install.ps1
 ```
 
 The installer will:
@@ -125,10 +152,13 @@ The installer will:
 - ✅ Install Playwright browsers
 - ✅ Initialize database
 
+> 📁 All installation scripts are in the `setup/` folder. See [setup/README.md](setup/README.md) for details.
+
 #### Manual Installation
 
 If you prefer manual setup:
 
+**macOS / Linux:**
 ```bash
 # 1. Create virtual environment
 python3 -m venv .venv
@@ -145,38 +175,69 @@ playwright install chromium
 python -c "from Helper.database import init_mainframe_db; init_mainframe_db()"
 ```
 
+**Windows:**
+```cmd
+REM 1. Create virtual environment
+python -m venv .venv
+.venv\Scripts\activate
+
+REM 2. Install dependencies
+pip install -r requirements.txt
+pip install qrcode segno
+
+REM 3. Install Playwright browsers
+playwright install chromium
+
+REM 4. Initialize database
+python -c "from Helper.database import init_mainframe_db; init_mainframe_db()"
+```
+
 ### Quick Start
 
 #### Scrape a Listing
-```bash
-# Activate virtual environment
-source .venv/bin/activate
 
-# Run scraper
+**macOS / Linux:**
+```bash
+source .venv/bin/activate
 python Agent.py
-# Enter a 999.md listing URL when prompted
+```
+
+**Windows:**
+```cmd
+.venv\Scripts\activate
+python Agent.py
 ```
 
 #### Launch Dashboard
-```bash
-# Activate virtual environment
-source .venv/bin/activate
 
-# Start dashboard
+**macOS / Linux:**
+```bash
+source .venv/bin/activate
 python Dashboard.py
-# Open http://localhost:5000 in your browser
 ```
 
+**Windows:**
+```cmd
+.venv\Scripts\activate
+python Dashboard.py
+```
+
+Then open http://localhost:5000 in your browser.
+
 #### Regenerate HTML
+
+**macOS / Linux:**
 ```bash
-# Activate virtual environment
 source .venv/bin/activate
-
-# Regenerate specific listing
 python regenerate_html.py --listing-id 102312333
+# Or batch: python regenerate_html.py --batch
+```
 
-# Or batch regenerate all listings
-python regenerate_html.py --batch
+**Windows:**
+```cmd
+.venv\Scripts\activate
+python regenerate_html.py --listing-id 102312333
+REM Or batch: python regenerate_html.py --batch
 ```
 
 ---
