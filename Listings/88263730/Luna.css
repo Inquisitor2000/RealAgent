@@ -1,0 +1,1365 @@
+:root {
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --primary: #3b82f6;
+      --primary-light: #60a5fa;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --accent: #059669;
+      --radius: 12px;
+      --radius-small: 8px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+      --transition: 0.2s ease;
+      --gap: 1.5rem;
+    }
+
+    /* Dark mode variable overrides (applies when body has .dark-mode) */
+    body.dark-mode {
+      --bg: #1a1a1a;           /* page background */
+      --card: #2a2a2a;         /* card/background surfaces */
+      --primary: #ffffff;      /* accents */
+      --primary-light: #e5e5e5;
+      --text: #ffffff;         /* main text */
+      --text-secondary: #b3b3b3; /* secondary text */
+    }
+
+    /* Smooth transitions for all color-changing elements */
+    body {
+      transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                  color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .container,
+    .features-section,
+    .carousel-wrapper,
+    .poi-btn,
+    .poi-toggle,
+    .lang-switch button {
+      transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                  color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Invisible circular mask for seamless theme transitions */
+    .theme-preview-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0;
+      clip-path: circle(0% at 50% 50%);
+      transition: clip-path 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    /* Preview layer shows the target theme without affecting current page */
+    .theme-preview-layer.active {
+      opacity: 1;
+    }
+    
+    .theme-preview-layer.expanding {
+      clip-path: circle(150% at 50% 50%);
+    }
+    
+    /* Professional pin marker styles */
+    .poi-pin-marker {
+      background: none !important;
+      border: none !important;
+    }
+    
+    .property-pin-marker {
+      background: none !important;
+      border: none !important;
+    }
+    
+    .poi-pin-marker svg {
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+    
+    .property-pin-marker svg {
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
+    }
+    
+    /* Icon-based dark mode toggle animation */
+    .dark-mode-toggle {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .theme-icon {
+      font-size: 0.9rem;
+      width: fit-content;
+      height: fit-content;
+      transition: all 0.8s ease-out;
+      cursor: pointer;
+    }
+    
+    .moon-icon {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transform: translateY(20%) rotateZ(50deg);
+      color: #ffffff;
+    }
+    
+    .sun-icon {
+      opacity: 1;
+      transform: translateY(0) rotateZ(0deg);
+      color: #2d3748;
+    }
+    
+    /* Animation states */
+    .animate-sun {
+      opacity: 0;
+      transform: translateY(20%) rotateZ(100deg);
+      color: #ffffff;
+    }
+    
+    .animate-moon {
+      opacity: 1;
+      transform: translateY(0%) rotateZ(0deg);
+      color: #ffffff;
+    }
+    
+    /* Background transition */
+    body {
+      transition: background-color 1.2s ease-out;
+    }
+    
+    /* Dark theme preview styles */
+    .theme-preview-layer.dark-preview {
+      background: #1a1a1a;
+      color: #ffffff;
+    }
+    
+    .theme-preview-layer.dark-preview .preview-container {
+      background: #2a2a2a;
+      color: #ffffff;
+    }
+    
+    .theme-preview-layer.dark-preview .preview-carousel {
+      background: #2a2a2a;
+    }
+    
+    .theme-preview-layer.dark-preview .preview-features {
+      background: #2a2a2a;
+      border-color: #555555;
+      color: #ffffff;
+    }
+    
+    .theme-preview-layer.dark-preview .preview-poi-btn {
+      background: #2a2a2a;
+      border-color: #555;
+      color: #e5e7eb;
+    }
+    
+    .theme-preview-layer.dark-preview .preview-lang-btn {
+      background: #3a3a3a;
+      border-color: #555555;
+      color: #e5e7eb;
+    }
+    
+    /* Light theme preview styles */
+    .theme-preview-layer.light-preview {
+      background: #f8fafc;
+      color: #1f2937;
+    }
+    
+    .theme-preview-layer.light-preview .preview-container {
+      background: #f8fafc;
+      color: #1f2937;
+    }
+    
+    .theme-preview-layer.light-preview .preview-carousel {
+      background: #f8f9fa;
+    }
+    
+    .theme-preview-layer.light-preview .preview-features {
+      background: #ffffff;
+      border-color: #e5e7eb;
+      color: #1f2937;
+    }
+    
+    .theme-preview-layer.light-preview .preview-poi-btn {
+      background: #ffffff;
+      border-color: #e5e7eb;
+      color: #1f2937;
+    }
+    
+    .theme-preview-layer.light-preview .preview-lang-btn {
+      background: #ffffff;
+      border-color: #e5e7eb;
+      color: #1f2937;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
+      overscroll-behavior-x: none;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+    
+    body.loaded {
+      opacity: 1;
+    }
+    
+    /* Remove old transition classes - no longer needed */
+    
+    html {
+      scroll-behavior: smooth;
+      overscroll-behavior: none;
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+    .container {
+      width: 100%;
+      max-width: 650px;
+      background: var(--bg);
+      margin: 0 auto;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: none;
+    }
+    header {
+      position: relative;
+      background: var(--card);
+      border-bottom: 1px solid #e5e7eb;
+      padding: 1.5rem 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      min-height: 60px;
+    }
+    
+    body.dark-mode header {
+      border-bottom-color: #374151;
+    }
+    
+    .header-nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      width: 100%;
+    }
+    
+    .logo {
+      position: absolute;
+      left: 25%;
+      transform: translateX(-50%);
+      height: 64px;
+      width: auto;
+    }
+    
+    .logo img {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+    }
+    
+    header a {
+      color: var(--text-secondary);
+      text-decoration: underline;
+      font-weight: 400;
+      font-size: 1rem;
+    }
+    header a:hover { 
+      color: var(--primary);
+      text-decoration: underline;
+    }
+    /* Unified text size for all elements */
+    h1, h2, h3 { 
+      font-size: 1rem; 
+      margin: 0; 
+      font-weight: 400;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    /* Language + dark switch in nav */
+    .lang-switch {
+      display: flex;
+      gap: .5rem;
+      z-index: 20;
+    }
+    .lang-switch button {
+      background: #ffffff;
+      color: var(--text) !important; /* override header transparent text */
+      -webkit-text-fill-color: initial !important;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: .25rem .5rem;
+      cursor: pointer;
+      font-weight: 400;
+      font-size: 1rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .lang-switch button:hover {
+      background: #f8f9fa;
+    }
+    .lang-switch button.active {
+      background: #f0f0f0;
+      border-color: #d0d0d0;
+    }
+    /* Button tweaks in dark mode */
+    body.dark-mode .lang-switch button {
+      background: #3a3a3a;
+      border-color: #555555;
+      color: #e5e7eb !important;
+    }
+    body.dark-mode .lang-switch button:hover {
+      background: #4a4a4a;
+    }
+    body.dark-mode .lang-switch button.active {
+      background: #555555;
+      border-color: #777777;
+    }
+
+    /* Carousel container */
+    .carousel-wrapper {
+      position: relative;
+      width: 100%;
+      height: 350px;
+      overflow: hidden;
+      border-radius: 0;
+      margin: 0 0 1rem 0;
+      contain: layout style paint;
+      background: #f8f9fa;
+    }
+    body.dark-mode .carousel-wrapper {
+      background: #2a2a2a;
+    }
+    .slides {
+      display: flex;
+      height: 100%;
+      will-change: transform;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateX(0%);
+    }
+    .slides.no-transition {
+      transition: none !important;
+    }
+    .slide {
+      flex: 0 0 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    .slide img, a.lg-link img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+      display: block;
+      border-radius: 0;
+      transition: opacity 0.2s ease;
+    }
+    .slide img:active {
+      opacity: 0.9;
+    }
+    a.lg-link {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Carousel navigation */
+    .carousel-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      z-index: 10;
+      transition: all 0.2s ease;
+    }
+    .carousel-nav:hover {
+      background: rgba(0, 0, 0, 0.7);
+    }
+    .carousel-nav.prev { left: 10px; }
+    .carousel-nav.next { right: 10px; }
+    .carousel-dots {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+    .carousel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .carousel-dot.active {
+      background: white;
+      transform: scale(1.2);
+    }
+    
+    /* Card-based sections styling */
+    .content-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin: 1rem;
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Add a subtle white highlight to the top of each card */
+    .content-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 1px 3px rgba(255, 255, 255, 0.4);
+    }
+    
+    .property-info-card {
+      padding: 1rem 1.25rem 0.75rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    
+    .property-info-card h2 {
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.5rem;
+    }
+    
+    .property-info-card h3 {
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.5rem;
+      color: var(--primary);
+      font-size: 1rem;
+      font-weight: 400;
+    }
+    
+    body.dark-mode .property-info-card {
+      border-bottom-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Dark mode adjustments for cards */
+    body.dark-mode .content-card {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Remove highlight in dark mode */
+    body.dark-mode .content-card::before {
+      display: none;
+    }
+    
+    .property-price {
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    
+    .property-type {
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    
+    .property-address {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    /* Contact card with inline layout */
+    .contact-card {
+      padding: 0.75rem 1rem;
+    }
+    
+    .contact-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .contact-header h2 {
+      margin: 0;
+    }
+    
+    .contact-number {
+      margin: 0;
+      text-align: right;
+    }
+    
+    /* Sections styling */
+    section { 
+      padding: 0; 
+    }
+    section h2 {
+      margin-bottom: 1rem; 
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text);
+    }
+    section p { 
+      margin-bottom: var(--gap); 
+      color: var(--text-secondary);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .features-block {
+      margin-top: 1rem;
+    }
+    
+    .features-section {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .features-section h3 {
+      color: var(--primary);
+      font-size: 1rem;
+      font-weight: 400;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+    }
+    .features-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .features-list li {
+      font-size: 1rem;
+      color: var(--text);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      line-height: 1.6;
+      gap: 0.5rem;
+    }
+    .features-list li::before {
+      content: '•';
+      color: var(--primary);
+      font-weight: 400;
+      margin-right: 0.75rem;
+      margin-top: 0.1rem;
+      flex-shrink: 0;
+    }
+    .feature-key {
+      font-weight: 400;
+      color: var(--text);
+      flex: 0 0 auto;
+    }
+    .feature-value {
+      color: var(--text-secondary);
+      font-weight: 400;
+      text-align: right;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* Amenities collapsible spoiler */
+    .amenities-spoiler {
+      margin-top: 1.5rem;
+    }
+    
+    .amenities-spoiler summary {
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 0;
+      user-select: none;
+    }
+    
+    .amenities-spoiler summary::-webkit-details-marker {
+      display: none;
+    }
+    
+    .spoiler-icon {
+      margin-right: 0.5rem;
+      transition: transform 0.2s ease;
+      display: inline-block;
+      font-size: 0.75rem;
+    }
+    
+    .amenities-spoiler[open] .spoiler-icon {
+      transform: rotate(90deg);
+    }
+    
+    .amenities-spoiler summary:hover {
+      opacity: 0.8;
+    }
+    
+    /* Override feature-value styling inside amenities to align left and match feature-key */
+    .amenities-spoiler .features-list .feature-value {
+      text-align: left;
+      margin-left: 0;
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    @media (max-width: 768px) {
+      .header-nav {
+        justify-content: flex-end;
+      }
+      
+      .content-card {
+        margin: 0.75rem;
+      }
+      
+      .property-info-card {
+        padding: 0.75rem 1rem 0.5rem;
+      }
+      
+      .features-list {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+      .features-section {
+        padding: 1rem;
+        margin: 0.75rem;
+      }
+      .carousel-wrapper {
+        width: 100%;
+        height: 280px; /* Smaller on mobile */
+        margin: 0 0 0.75rem 0;
+      }
+      .arrow {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 0.9rem;
+      }
+      .prev { left: 0.5rem; }
+      .next { right: 0.5rem; }
+    }
+    
+    @media (min-width: 769px) {
+      .features-block ul {
+        gap: 1.25rem;
+      }
+      .features-block ul li {
+        padding: 1.25rem;
+      }
+    }
+    
+    /* Map container improvements */
+    .leaflet-container {
+      border-radius: 0; /* Edge-to-edge styling */
+    }
+    
+    /* Fix Leaflet CSS cross-browser compatibility */
+    .leaflet-tile,
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow,
+    .leaflet-overlay-pane svg,
+    .leaflet-pane > svg,
+    .leaflet-pane > canvas {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    
+    /* Ensure proper touch handling on mobile */
+    .leaflet-container.leaflet-touch-drag {
+      -ms-touch-action: pan-x pan-y;
+      touch-action: pan-x pan-y;
+    }
+    
+    /* Fix for Safari rendering */
+    .leaflet-container img.leaflet-tile,
+    .leaflet-container img.leaflet-marker-icon {
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    
+    /* POI Toolbar above the map (two rows) */
+    .poi-toolbar {
+      margin: 0 0 0.3rem 0; 
+      padding: 0.5rem;
+      background: transparent;
+      border-radius: var(--radius-small);
+    }
+    
+    body.dark-mode .poi-toolbar {
+      background: transparent;
+    }
+    .poi-toolbar.row1 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.3rem;
+    }
+    .poi-toolbar.row2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.3rem;
+    }
+    .poi-btn {
+      appearance: none;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      background: transparent;
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0; /* allow shrinking inside grid cell */
+    }
+    .poi-btn:hover { 
+      background: rgba(0, 0, 0, 0.03);
+      transform: translateY(-1px); 
+    }
+    .poi-btn:active { 
+      transform: translateY(0); 
+      background: rgba(0, 0, 0, 0.05);
+    }
+    .poi-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+    /* Dark mode adjustments */
+    body.dark-mode .poi-btn { 
+      background: transparent; 
+      border-color: rgba(255, 255, 255, 0.1); 
+      color: var(--text); 
+    }
+    body.dark-mode .poi-btn:hover { 
+      background: rgba(255, 255, 255, 0.05); 
+    }
+    body.dark-mode .poi-btn.active { 
+      background: rgba(212, 175, 55, 0.4); 
+      color: #ffffff; 
+      border-color: #b8941f;
+    }
+    @media (max-width: 420px) { .poi-btn { font-size: 1rem; padding: 0.4rem 0.6rem; } }
+
+    /* POI Controls */
+    .poi-controls {
+      position: absolute;
+      top: -50px; /* Position above the map */
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px;
+      pointer-events: none; /* Allow clicks to pass through to elements below */
+    }
+    
+    .poi-category {
+      display: flex;
+      flex-direction: column;
+      margin-right: 15px;
+      pointer-events: auto; /* Re-enable pointer events for the category */
+    }
+    
+    .poi-category-title {
+      font-size: 1rem;
+      font-weight: 400;
+      color: #4a5568;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .poi-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    
+    .poi-toggle {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      background: none;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 400;
+      color: #2d3748;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .poi-toggle:hover {
+      background-color: rgba(241, 245, 249, 0.8);
+      transform: translateY(-1px);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    .poi-toggle.active {
+      background-color: #3b82f6;
+      color: white;
+      border-color: #2563eb;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Map container adjustment to accommodate the POI controls */
+    #map {
+      margin-top: 0;
+      border-radius: 0 0 8px 8px;
+    }
+    
+    .poi-submenu-item:hover {
+      background: #f8fafc;
+    
+    .poi-submenu-item.active {
+      background: #f1f5f9;
+      color: #1e40af;
+    }
+    
+      border-color: #999;
+    }
+    
+    body.dark-mode .poi-toggle {
+      background: rgba(42, 42, 42, 0.9);
+      border-color: #555;
+      color: #e5e7eb;
+    }
+    
+    body.dark-mode .poi-toggle:hover {
+      background: rgba(42, 42, 42, 1);
+    }
+    
+    body.dark-mode .poi-toggle.active {
+      background: rgba(212, 175, 55, 0.4);
+      color: #ffffff;
+      border-color: #b8941f;
+    }
+    
+    /* Unified Marker Design System */
+    .unified-marker {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    .unified-marker::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: var(--marker-color, #2d3748);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      border: 3px solid white;
+    }
+    
+    .marker-inner {
+      position: relative;
+      z-index: 2;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(0deg);
+    }
+    
+    /* Property marker specific styling */
+    .property-marker-icon {
+      --marker-color: #2d3748;
+    }
+    
+    .property-marker-icon::before {
+      background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    }
+    
+    /* POI marker specific styling */
+    .poi-marker-icon::before {
+      background: var(--marker-color);
+    }
+    
+    /* Hover effects for markers */
+    .unified-marker:hover::before {
+      transform: rotate(-45deg) scale(1.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Fullscreen lightbox for carousel */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      display: none;
+      z-index: 9999;
+      color: #fff;
+      touch-action: none; /* we'll manage gestures */
+    }
+    .lightbox.open { display: block; }
+    .lightbox-toolbar {
+      position: absolute;
+      top: 10px; left: 10px; right: 10px;
+      display: flex; justify-content: flex-end; align-items: center; /* close on right */
+      pointer-events: none;
+      gap: .5rem;
+      z-index: 2; /* always above the image */
+    }
+    .lightbox-btn {
+      pointer-events: all;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      border-radius: 8px;
+      padding: .5rem .75rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    /* Match carousel nav buttons */
+    .lightbox-nav .lightbox-btn {
+      background: rgba(0, 0, 0, 0.5);
+      width: 40px; height: 40px; border-radius: 50%; border: none;
+      display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+      transition: opacity .25s ease; /* smooth fade */
+    }
+    .lightbox-nav .lightbox-btn:hover { background: rgba(0,0,0,0.7); }
+    /* Close button circular on right */
+    #lb-close {
+      width: 40px; height: 40px; border-radius: 50%; border: none;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .lightbox-stage {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      z-index: 1; /* below toolbar */
+    }
+    .lightbox-viewport {
+      position: relative; max-width: 100%; max-height: 100%;
+      width: 100%; height: 100%;
+      transform-origin: center center;
+      will-change: transform;
+      cursor: grab;
+      overflow: hidden; /* ensure no edge strip shows */
+      display: flex; align-items: center; justify-content: center; /* center the image */
+    }
+    .lightbox-viewport.grabbing { cursor: grabbing; }
+    /* Ribbon track for lightbox transitions */
+    .lb-track {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      width: 200%;
+      height: 100%;
+      transform: translate3d(0,0,0);
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+    .lb-track .lightbox-img {
+      flex: 0 0 100%;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .lightbox-img { max-width: 90vw; max-height: 85vh; -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-user-drag: none; pointer-events: none; transform-origin: center center; }
+    /* Lightbox slide animation to match carousel: transform-only with same easing/duration */
+    .lb-anim {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+    }
+    .lb-off-left { transform: translateX(-100%); }
+    .lb-off-right { transform: translateX(100%); }
+    .lightbox-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      display: flex; gap: .5rem;
+    }
+    .lightbox-prev { left: 10px; }
+    .lightbox-next { right: 10px; }
+    
+    @media (max-width: 768px) {
+      .lightbox-img { max-width: 96vw; max-height: 82vh; }
+    }
+    
+    /* Persistent Call Button */
+    .call-button-container {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    /* Notification Bell Button */
+    .notify-button-container {
+      position: fixed;
+      bottom: 1.5rem;
+      /* Calculate position to be equidistant from call button and left edge */
+      /* Mirror the share button positioning logic for the left side */
+      left: calc(20% - 28px); /* 20% from left minus half button width (56px/2) */
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .notify-button {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #10b981; /* Green color */
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    .notify-button:hover {
+      background: #059669;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
+    
+    .notify-button:active {
+      transform: translateY(0);
+    }
+    
+    .notify-button svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+    
+    body:not(.dark-mode) .call-button-container.visible {
+      opacity: 1.0;
+      visibility: visible;
+    }
+    
+    body.dark-mode .call-button-container.visible {
+      opacity: 1.0;
+      visibility: visible;
+    }
+    
+    .call-button-container.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    
+    /* Ensure consistent positioning regardless of language */
+    body[lang="ru"] .notify-button-container,
+    body[lang="ro"] .notify-button-container {
+      left: calc(20% - 28px); /* Force same positioning for both languages */
+    }
+    
+    /* Notification button visibility states */
+    body:not(.dark-mode) .notify-button-container.visible {
+      opacity: 1.0;
+      visibility: visible;
+    }
+    
+    body.dark-mode .notify-button-container.visible {
+      opacity: 1.0;
+      visibility: visible;
+    }
+    
+    .notify-button-container.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    
+    .call-button {
+      pointer-events: auto;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .call-button-container.hidden .call-button {
+      pointer-events: none;
+      cursor: default;
+    }
+    
+    .call-button:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+    }
+    
+    .call-button:active {
+      transform: translateY(0);
+    }
+    
+    /* Icons always white for all buttons */
+    .call-button svg,
+    .notify-button svg,
+    .share-button svg {
+      fill: white;
+    }
+    
+    /* Share Button Styles */
+    .share-button-container {
+      position: fixed;
+      bottom: 1.5rem;
+      /* Calculate position to be equidistant from call button and right edge */
+      /* Call button ends roughly at 60% (center + half its width) */
+      /* So position at 80% for equal spacing (20% from call button edge, 20% from screen edge) */
+      right: calc(20% - 28px); /* 20% from right minus half button width (56px/2) */
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    /* Ensure consistent positioning regardless of language */
+    body[lang="ru"] .share-button-container,
+    body[lang="ro"] .share-button-container {
+      right: calc(20% - 28px); /* Force same positioning for both languages */
+    }
+    
+    body:not(.dark-mode) .share-button-container.visible {
+      opacity: 1.0;
+      visibility: visible;
+    }
+    
+    body.dark-mode .share-button-container.visible {
+      opacity: 1.0;
+      visibility: visible;
+    }
+    
+    .share-button {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #d4af37; /* Golden yellow */
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      box-shadow: none;
+    }
+    
+    /* Removed hover and active effects for cleaner interaction */
+    
+    /* Share button icon size */
+    .share-button svg {
+      width: 20px;
+      height: 20px;
+      fill: white;
+    }
+    
+    /* Add padding to container bottom to prevent content overlap */
+    .container {
+      padding-bottom: 6rem;
+    }
+    
+    /* Pull to refresh styles */
+    .pull-to-refresh {
+      position: fixed;
+      top: -44px; /* Start above viewport */
+      left: 50%;
+      transform: translateX(-30%);
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border-radius: 35%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    body.dark-mode .pull-to-refresh {
+      background: #2a2a2a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .pull-to-refresh.visible {
+      opacity: 1;
+    }
+    
+    .pull-to-refresh.pulling {
+      transition: none;
+    }
+    
+    .pull-to-refresh.refreshing {
+      top: 16px;
+      opacity: 1;
+    }
+    
+    .pull-to-refresh-spinner {
+      width: 26px;
+      height: 26px;
+      position: relative;
+      animation: none;
+      transition: transform 0.15s ease-out;
+      transform: rotate(0deg); /* Start at default position */
+    }
+    
+    /* Background circle - light gray ring */
+    .pull-to-refresh-spinner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 50%;
+      border: 2.5px solid rgba(0, 0, 0, 0.08);
+      box-sizing: border-box;
+    }
+    
+    /* Spinning arc */
+    .pull-to-refresh-spinner::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      border-top-color: currentColor;
+      border-right-color: currentColor;
+      box-sizing: border-box;
+    }
+    
+    /* Light mode: blue spinner */
+    body:not(.dark-mode) .pull-to-refresh-spinner {
+      color: #3b82f6; /* Primary color for spinning arc */
+    }
+    
+    body:not(.dark-mode) .pull-to-refresh-spinner::before {
+      border-color: rgba(59, 130, 246, 0.2);
+    }
+    
+    /* Dark mode: golden yellow spinner */
+    body.dark-mode .pull-to-refresh-spinner {
+      color: #d4af37; /* Primary color for spinning arc */
+    }
+    
+    body.dark-mode .pull-to-refresh-spinner::before {
+      border-color: rgba(212, 175, 55, 0.2);
+    }
+    
+    /* Remove conflicting transform */
+    
+    .pull-to-refresh.refreshing .pull-to-refresh-spinner {
+      animation: spin 1s linear infinite;
+      transition: none; /* Disable transition during animation */
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Dark mode adjustments - removed background gradient */
+    
+    body.dark-mode .call-button {
+      background: #3b82f6;
+    }
+    
+    body.dark-mode .call-button:hover {
+      background: #2563eb;
+    }
+    
+    /* Auto-sizing call button for all languages */
+    .call-button {
+      width: auto;
+      min-width: 100px;
+      max-width: 160px;
+      white-space: nowrap;
+      text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+      .call-button {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+      }
+    }

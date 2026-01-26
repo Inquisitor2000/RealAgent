@@ -1,0 +1,194 @@
+{
+  "name": "Chirie, Sp. comercial! Centru, Str. Grigore Vieru",
+  "short_name": "Property 102",
+  "description": "Spațiu comercial de închiriat – situat la parterul noului Complex Rezidențial Renaissance, sector Centru, bd. Grigore Vieru.\nSuprafață totală: 140 mp\nCompartimentare: open space, bloc sanitar, antreu\nDestinații recomandate: showroom, salon de frumusețe, magazin specializat sau orice alt tip de activitate comercială\nFacilități și avantaje:\nToate utilitățile conectate\nVariantă albă, pregătit pentru amenajare\nAmplasare pe prima linie\nGeamuri panoramice\nLocuri de parcare disponibile\nLocalizare excelentă: în apropiere de birouri, magazine, instituții de învățământ, blocuri locative, bancă, farmacie. Zonă cu trafic intens pietonal și acces facil la transport în orice direcție.\nCitește mai mult - 5 600 € in Chișinău, Bulevardul Grigore Vieru",
+  "start_url": "/102691787/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#3b82f6",
+  "background_color": "#f8fafc",
+  "icons": [
+    {
+      "src": "images/image_0.webp",
+      "sizes": "48x48",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "72x72",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "96x96",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "128x128",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "144x144",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "152x152",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "167x167",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "180x180",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "384x384",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "384x384",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "business",
+    "lifestyle",
+    "utilities"
+  ],
+  "lang": "ro",
+  "dir": "ltr",
+  "scope": "/102691787/",
+  "id": "realagent-102691787",
+  "prefer_related_applications": false,
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "realagent": {
+    "listing_id": "102691787",
+    "property_type": "apartment",
+    "price": "5 600 €",
+    "location": "Chișinău, Bulevardul Grigore Vieru",
+    "generated_at": "",
+    "version": "1.0.0"
+  },
+  "shortcuts": [
+    {
+      "name": "View Photos",
+      "short_name": "Photos",
+      "description": "View property photos",
+      "url": "/102691787/#gallery",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Map",
+      "short_name": "Map",
+      "description": "View property location",
+      "url": "/102691787/#map",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Contact Agent",
+      "short_name": "Contact",
+      "description": "Contact property agent",
+      "url": "/102691787/#contact",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "images/image_0.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 1"
+    },
+    {
+      "src": "images/image_1.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 2"
+    },
+    {
+      "src": "images/image_2.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 3"
+    },
+    {
+      "src": "images/image_3.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 4"
+    },
+    {
+      "src": "images/image_4.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 5"
+    }
+  ]
+}

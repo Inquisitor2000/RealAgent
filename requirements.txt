@@ -1,0 +1,27 @@
+# Core scraping dependencies
+aiohttp>=3.8.0
+beautifulsoup4>=4.11.0
+playwright>=1.40.0
+requests>=2.31.0
+
+# Image optimization
+Pillow>=10.0.0
+
+# SSL certificate generation for HTTPS server
+cryptography>=41.0.0
+
+# Interactive map for address correction
+folium>=0.14.0
+
+# Web server and API dependencies
+aiohttp-cors>=0.7.0
+Flask>=3.0.0
+
+# Database
+# sqlite3 is included in Python standard library
+
+# Standard library modules (no installation needed):
+# - asyncio, os, sys, json, sqlite3, hashlib, uuid, html
+# - shutil, webbrowser, tempfile, threading, socket, time
+# - urllib.parse, pathlib, datetime, logging, mimetypes
+# - re, io, contextlib, http.server

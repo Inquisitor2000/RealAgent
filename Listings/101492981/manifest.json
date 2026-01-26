@@ -1,0 +1,194 @@
+{
+  "name": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.",
+  "short_name": "Property 101",
+  "description": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult - 60 000 € in Chișinău, Strada Caucaz 120",
+  "start_url": "/101492981/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#3b82f6",
+  "background_color": "#f8fafc",
+  "icons": [
+    {
+      "src": "images/image_0.webp",
+      "sizes": "48x48",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "72x72",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "96x96",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "128x128",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "144x144",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "152x152",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "167x167",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "180x180",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "384x384",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "384x384",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "business",
+    "lifestyle",
+    "utilities"
+  ],
+  "lang": "ro",
+  "dir": "ltr",
+  "scope": "/101492981/",
+  "id": "realagent-101492981",
+  "prefer_related_applications": false,
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "realagent": {
+    "listing_id": "101492981",
+    "property_type": "apartment",
+    "price": "60 000 €",
+    "location": "Chișinău, Strada Caucaz 120",
+    "generated_at": "",
+    "version": "1.0.0"
+  },
+  "shortcuts": [
+    {
+      "name": "View Photos",
+      "short_name": "Photos",
+      "description": "View property photos",
+      "url": "/101492981/#gallery",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Map",
+      "short_name": "Map",
+      "description": "View property location",
+      "url": "/101492981/#map",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Contact Agent",
+      "short_name": "Contact",
+      "description": "Contact property agent",
+      "url": "/101492981/#contact",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "images/image_0.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 1"
+    },
+    {
+      "src": "images/image_1.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 2"
+    },
+    {
+      "src": "images/image_2.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 3"
+    },
+    {
+      "src": "images/image_3.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 4"
+    },
+    {
+      "src": "images/image_4.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 5"
+    }
+  ]
+}

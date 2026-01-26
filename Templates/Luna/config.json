@@ -1,0 +1,64 @@
+{
+  "name": "Luna",
+  "version": "1.0",
+  "description": "Modern, responsive, real estate template.",
+  "placeholders": {
+    "basic": [
+      "title",
+      "description_meta", 
+      "html_lang",
+      "current_url"
+    ],
+    "property": [
+      "title_ro",
+      "title_ru", 
+      "price_ro",
+      "price_ru",
+      "address_ro",
+      "address_ru"
+    ],
+    "media": [
+      "slides",
+      "share_image_url"
+    ],
+    "features": [
+      "combined_features_block_ro",
+      "combined_features_block_ru"
+    ],
+    "contact": [
+      "contact_ro",
+      "contact_ru",
+      "contact_clean_ro", 
+      "contact_clean_ru",
+      "contact_label_ro",
+      "contact_label_ru"
+    ],
+    "description": [
+      "description_ro",
+      "description_ru",
+      "description_label_ro",
+      "description_label_ru"
+    ],
+    "meta": [
+      "template_name",
+      "listing_id",
+      "initial_lang",
+      "og_locale"
+    ]
+  },
+  "data_processors": {
+    "slides": "generate_slides_html",
+    "combined_features_block": "generate_features_block", 
+    "contact": "process_contact_info",
+    "share_image": "get_share_image_url"
+  },
+  "features": {
+    "multilingual": true,
+    "responsive": true,
+    "image_carousel": true,
+    "map_integration": true,
+    "pwa_support": true
+  },
+  "supported_languages": ["ro", "ru"],
+  "default_language": "ro"
+}

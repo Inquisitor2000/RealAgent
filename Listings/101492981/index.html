@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.</title>
+  
+  <!-- Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.">
+  <meta property="og:description" content="Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile. Imobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnard...">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="images/image_0.webp">
+  <meta property="og:locale" content="ro_RO">
+  <meta name="description" content="Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile. Imobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnard...">
+  <meta name="template" content="thunder">
+  <meta name="listing-id" content="101492981">
+  
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- Luna-style POI CSS -->
+  <style>
+    /* Luna-style POI marker styles */
+    .poi-pin-marker {
+      background: none !important;
+      border: none !important;
+    }
+    
+    .poi-pin-marker div {
+      background: none !important;
+      border: none !important;
+    }
+    
+    .poi-pin-marker svg {
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+    
+    .property-pin-marker {
+      background: none !important;
+      border: none !important;
+    }
+    
+    .property-pin-marker div {
+      background: none !important;
+      border: none !important;
+    }
+    
+    .property-pin-marker svg {
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+    }
+    
+    /* POI popup styling */
+    .poi-popup {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.4;
+      max-width: 200px;
+    }
+    
+    .poi-popup strong {
+      color: #1f2937;
+      font-weight: 600;
+    }
+    
+    .poi-popup em {
+      color: #6b7280;
+      font-style: italic;
+      font-size: 12px;
+    }
+    
+    .poi-popup small {
+      color: #9ca3af;
+      font-size: 11px;
+    }
+    
+    /* Leaflet container improvements */
+    .leaflet-container {
+      border-radius: 0;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    .leaflet-tile,
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow,
+    .leaflet-overlay-pane svg,
+    .leaflet-pane > svg,
+    .leaflet-pane > canvas {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    /* Mobile touch handling */
+    .leaflet-container.leaflet-touch-drag {
+      -ms-touch-action: pan-x pan-y;
+      touch-action: pan-x pan-y;
+    }
+    
+    /* Safari rendering fix */
+    .leaflet-container img.leaflet-tile,
+    .leaflet-container img.leaflet-marker-icon {
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+  </style>
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="Thunder.css">
+  
+  <!-- PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', async () => {
+        try {
+          await navigator.serviceWorker.register('/pwa/service-worker.js', { scope: '/' });
+        } catch (error) {
+          console.error('Service Worker registration failed:', error);
+        }
+      });
+    }
+  </script>
+  
+  <script>
+  // Pre-generated POI data - eliminates runtime API calls
+  window.preGeneratedPOIData = {
+  "atms": [
+    {
+      "id": 13055987403,
+      "type": "node",
+      "lat": 47.0071404,
+      "lng": 28.7641587,
+      "name": "Moldova Agroindbank",
+      "category": "atms",
+      "tags": {
+        "amenity": "atm",
+        "operator": "Moldova Agroindbank",
+        "brand": "Moldova Agroindbank"
+      }
+    }
+  ],
+  "pharmacies": [
+    {
+      "id": 8417581599,
+      "type": "node",
+      "lat": 47.0069684,
+      "lng": 28.7640928,
+      "name": "Felicia",
+      "category": "pharmacies",
+      "tags": {
+        "amenity": "pharmacy",
+        "healthcare": "pharmacy",
+        "brand": "Felicia",
+        "addr:street": "Strada Nicolae Dimo",
+        "addr:housenumber": "86"
+      }
+    },
+    {
+      "id": 9787614995,
+      "type": "node",
+      "lat": 47.007233,
+      "lng": 28.7640457,
+      "name": "Zolușka",
+      "category": "pharmacies",
+      "tags": {
+        "shop": "chemist",
+        "website": "https://ro.zolusca.md/",
+        "phone": "022877090",
+        "addr:street": "Strada Nicolae Dimo",
+        "addr:housenumber": "86"
+      }
+    }
+  ],
+  "restaurants": [
+    {
+      "id": 11181200037,
+      "type": "node",
+      "lat": 47.0070925,
+      "lng": 28.7641303,
+      "name": "Andy's Pizza",
+      "category": "restaurants",
+      "tags": {
+        "amenity": "restaurant",
+        "website": "https://andys.md/",
+        "phone": "+373 22 210 210",
+        "opening_hours": "Mo-Su 09:00-20:00",
+        "addr:street": "Strada Nicolae Dimo",
+        "addr:housenumber": "86"
+      }
+    }
+  ],
+  "supermarkets": [
+    {
+      "id": 1259234445,
+      "type": "node",
+      "lat": 47.0063949,
+      "lng": 28.765046,
+      "name": "Alimentară",
+      "category": "supermarkets",
+      "tags": {
+        "shop": "convenience",
+        "addr:street": "Strada Nicolae Dimo",
+        "addr:housenumber": "110"
+      }
+    },
+    {
+      "id": 8792591975,
+      "type": "node",
+      "lat": 47.0070374,
+      "lng": 28.7641296,
+      "name": "Linella",
+      "category": "supermarkets",
+      "tags": {
+        "shop": "supermarket",
+        "brand": "Linella",
+        "website": "https://www.linella.md/",
+        "opening_hours": "Mo-Su 8:00-22:00",
+        "addr:street": "Strada Nicolae Dimo",
+        "addr:housenumber": "86"
+      }
+    }
+  ]
+};
+  console.log("✅ Loaded pre-generated POI data:", Object.keys(window.preGeneratedPOIData));
+</script>
+</head>
+<body>
+  <div class="thunder-container">
+    <!-- Gallery -->
+    <div class="gallery-wrapper">
+      <div class="image-gallery" id="gallery"></div>
+      <div class="gallery-controls">
+        <div class="image-bubbles" id="bubbles"></div>
+      </div>
+    </div>
+    
+    <!-- Info Overlay -->
+    <div class="description-overlay" id="infoOverlay">
+      <div class="overlay-handle">
+        <div class="handle-indicator"></div>
+      </div>
+      <div class="overlay-content" id="overlayContent"></div>
+    </div>
+    
+    <!-- Preview Modal -->
+    <div class="image-preview-modal" id="previewModal">
+      <div class="preview-container">
+        <img class="preview-image" id="previewImage" src="" alt="Preview">
+      </div>
+      <div class="preview-controls">
+        <button class="preview-nav-btn preview-prev-btn" id="previewPrev">❮</button>
+        <button class="preview-close-btn" id="previewClose">✕</button>
+        <button class="preview-nav-btn preview-next-btn" id="previewNext">❯</button>
+      </div>
+    </div>
+    
+    <!-- Settings Button (Left-aligned when overlay minimized) -->
+    <div class="settings-button-container" id="settingsButtonContainer">
+      <button class="settings-button" id="settingsButton" aria-label="Settings" title="Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.65-.07-.97l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.488.488 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.97c0 .33.03.65.07.97l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.13-.22.07-.49-.12-.64l-2.11-1.65Z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Theme Toggle Container -->
+    <div class="theme-toggle-container" id="themeToggleContainer">
+      <div class="toggle-switch" id="themeToggleSwitch">
+        <span class="toggle-value-left">☀️</span>
+        <span class="toggle-value-right">🌙</span>
+      </div>
+    </div>
+    
+    <!-- Language Toggle Container -->
+    <div class="lang-toggle-container" id="langToggleContainer">
+      <div class="toggle-switch" id="langToggleSwitch">
+        <span class="toggle-value-left">RO</span>
+        <span class="toggle-value-right">RU</span>
+      </div>
+    </div>
+    
+    <!-- Call Button (Centered when overlay minimized) -->
+    <div class="call-button-container" id="callButtonContainer">
+      <button class="call-button" id="callButton" aria-label="Call">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+        </svg>
+        <span class="call-text i18n ro">Sună</span>
+        <span class="call-text i18n ru" style="display:none;">Позвонить</span>
+      </button>
+    </div>
+    
+    <!-- Share Button (Right-aligned when overlay minimized) -->
+    <div class="share-button-container" id="shareButtonContainer">
+      <button class="share-button" id="shareButton" aria-label="Share this page">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Card Data -->
+  <script id="card-data" type="application/json">
+    [{"type": "image", "image": "images/image_0.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_1.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_2.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_3.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_4.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_5.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_6.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_7.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_8.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_9.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_10.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_11.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_12.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_13.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "image", "image": "images/image_14.webp", "title": "Vânzare! Vilă, 60 mp + mansarda 50 mp, teren 6 ari, Dănceni.", "price": "60 000 €", "address": "Chișinău, Strada Caucaz 120", "label_ro": "Descriere", "label_ru": "Описание", "text_ro": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nCitește mai mult", "text_ru": "Spre vânzare casă de vacanță amplasată în localitatea Dănceni, în sector de vile.\nImobilul cuprinde suprafața de 60 mp, cu teren de 6 ari. Dispune de masnardă open space cu suprafața de 50 mp.\nEste compartimentat în: 3 odăi separate, bucătărie, bloc sanitar.\nÎn curte dispune de duș de vară și bloc sanitar, spațiu de depozitare.\n\nCaracteristici:\n– reparație euro;\n– încălzire autonomă electrică;\n– termoizolată;\n– comunicații în apropiere.\nTerenul este amenajat cu un foișor în stil tradițional (are mangal și cuptor) și cu pomi fructiferi.\n\nAmplasare reușită, cu o priveliște frumoasă.\nЧитать дальше", "contact_label_ro": "Contact", "contact_label_ru": "Контакты", "contact_ro": "+37322888002", "contact_ru": "+37322888002", "contact_clean": "+37322888002"}, {"type": "features", "content_ro": "<h2>Caracteristici</h2>\n<ul class=\"features-list\">\n<li><span class=\"feature-key\">Număr de camere</span><span class=\"feature-value\">3</span></li>\n<li><span class=\"feature-key\">Suprafață totală</span><span class=\"feature-value\">60</span></li>\n<li><span class=\"feature-key\">Suprafața terenului</span><span class=\"feature-value\">600</span></li>\n<li><span class=\"feature-key\">Număr de etaje</span><span class=\"feature-value\">1</span></li>\n<li><span class=\"feature-key\">Starea casei</span><span class=\"feature-value\">Gata de mutat</span></li>\n<li><span class=\"feature-key\">Tip casă</span><span class=\"feature-value\">Casă individuală</span></li>\n<li><span class=\"feature-key\">Grădină</span><span class=\"feature-value\">Da</span></li>\n<li><span class=\"feature-key\">Garaj</span><span class=\"feature-value\">Detașat</span></li>\n<li><span class=\"feature-key\">Subsol</span><span class=\"feature-value\">Da</span></li>\n<li><span class=\"feature-key\">Mansardă</span><span class=\"feature-value\">Nu</span></li>\n<li><span class=\"feature-key\">Sistem de încălzire</span><span class=\"feature-value\">Gaz</span></li>\n<li><span class=\"feature-key\">Grup sanitar</span><span class=\"feature-value\">1</span></li>\n<li><span class=\"feature-key\">Loc de parcare</span><span class=\"feature-value\">Curte</span></li>\n</ul>\n<details class=\"amenities-spoiler\"><summary style=\"cursor: pointer; list-style: none; display: flex; align-items: center; padding: 0.5rem 0;\"><span class=\"spoiler-icon\" style=\"margin-right: 0.5rem; transition: transform 0.2s;\">▶</span>Amenități</summary><ul class=\"features-list\">\n<li><span class=\"feature-value\">Cu tehnică electrocasnică</span></li>\n<li><span class=\"feature-value\">Încălzire autonomă</span></li>\n<li><span class=\"feature-value\">Geamuri termopan</span></li>\n<li><span class=\"feature-value\">Ușă blindată</span></li>\n<li><span class=\"feature-value\">Geamuri panoramice</span></li>\n<li><span class=\"feature-value\">Cablu TV</span></li>\n<li><span class=\"feature-value\">Supraveghere video</span></li>\n<li><span class=\"feature-value\">Linie telefonică</span></li>\n</ul></details>", "content_ru": "<h2>Характеристики</h2>\n<ul class=\"features-list\">\n<li><span class=\"feature-key\">Количество комнат</span><span class=\"feature-value\">3</span></li>\n<li><span class=\"feature-key\">Общая площадь</span><span class=\"feature-value\">60</span></li>\n<li><span class=\"feature-key\">Площадь участка</span><span class=\"feature-value\">600</span></li>\n<li><span class=\"feature-key\">Количество этажей</span><span class=\"feature-value\">1</span></li>\n<li><span class=\"feature-key\">Состояние дома</span><span class=\"feature-value\">Готова к въезду</span></li>\n<li><span class=\"feature-key\">Тип дома</span><span class=\"feature-value\">Частный дом</span></li>\n<li><span class=\"feature-key\">Сад</span><span class=\"feature-value\">Да</span></li>\n<li><span class=\"feature-key\">Гараж</span><span class=\"feature-value\">Отдельный</span></li>\n<li><span class=\"feature-key\">Подвал</span><span class=\"feature-value\">Да</span></li>\n<li><span class=\"feature-key\">Мансарда</span><span class=\"feature-value\">Нет</span></li>\n<li><span class=\"feature-key\">Система отопления</span><span class=\"feature-value\">Газовое</span></li>\n<li><span class=\"feature-key\">Санузел</span><span class=\"feature-value\">1</span></li>\n<li><span class=\"feature-key\">Парковочное место</span><span class=\"feature-value\">Двор</span></li>\n</ul>\n<details class=\"amenities-spoiler\"><summary style=\"cursor: pointer; list-style: none; display: flex; align-items: center; padding: 0.5rem 0;\"><span class=\"spoiler-icon\" style=\"margin-right: 0.5rem; transition: transform 0.2s;\">▶</span>Удобства</summary><ul class=\"features-list\">\n<li><span class=\"feature-value\">С бытовой техникой</span></li>\n<li><span class=\"feature-value\">Автономное отопление</span></li>\n<li><span class=\"feature-value\">Стеклопакет</span></li>\n<li><span class=\"feature-value\">Бронированная дверь</span></li>\n<li><span class=\"feature-value\">Панорамные окна</span></li>\n<li><span class=\"feature-value\">ТВ кабель</span></li>\n<li><span class=\"feature-value\">Видеонаблюдение</span></li>\n<li><span class=\"feature-value\">Телефонная линия</span></li>\n</ul></details>"}]
+  </script>
+  
+  <!-- Map Data (Luna-style) -->
+  <script id="map-data" type="application/json">
+    {"lat": 47.00514652551236, "lng": 28.768089115619663, "title": "Chi\u0219in\u0103u, Strada Caucaz 120"}
+  </script>
+  
+  <!-- Gallery Script - Clean Rebuild -->
+  <script>
+    class ThunderGallery {
+      constructor() {
+        this.index = 0;
+        this.lang = 'ro' || 'ro';
+        this.isAnimating = false;
+        this.touchStart = 0;
+        this.isDragging = false;
+        
+        // Load persisted language preference from sessionStorage
+        const savedLang = sessionStorage.getItem('thunderGalleryLang');
+        if (savedLang) {
+          this.lang = savedLang;
+        }
+        
+        // Parse data
+        this.cards = JSON.parse(document.getElementById('card-data').textContent);
+        this.images = this.cards.filter(c => c.type === 'image');
+        this.features = this.cards.find(c => c.type === 'features');
+        this.total = this.images.length;
+        
+        // DOM
+        this.gallery = document.getElementById('gallery');
+        this.infoOverlay = document.getElementById('infoOverlay');
+        this.overlayContent = document.getElementById('overlayContent');
+        this.previewModal = document.getElementById('previewModal');
+        this.previewImage = document.getElementById('previewImage');
+        this.leafletMap = null;
+        this.mapInitialized = false;
+        
+        // Check if essential elements exist
+        if (!this.gallery) console.error('Gallery element not found');
+        if (!this.infoOverlay) console.error('Info overlay not found');
+        
+        console.log('DOM elements found:', {
+          gallery: !!this.gallery,
+          infoOverlay: !!this.infoOverlay,
+          overlayContent: !!this.overlayContent
+        });
+        
+        // Set initial overlay reference
+        this.overlay = this.infoOverlay;
+        
+        console.log(`🎯 Gallery: ${this.total} images`);
+        this.init();
+      }
+      
+      init() {
+        this.renderImages();
+        this.renderBubbles();
+        this.attachListeners();
+        this.setupButtonFunctionality();
+        console.log('✅ Gallery ready');
+      }
+      
+      renderImages() {
+        // Create a helper function to add image with all listeners
+        const addImageToGallery = (card, i, isClone = false) => {
+          const img = document.createElement('img');
+          img.className = 'gallery-image' + (i === 0 && !isClone ? ' active' : '');
+          img.src = card.image;
+          img.alt = `Image ${i + 1}`;
+          img.style.cursor = 'pointer';
+          if (isClone) img.dataset.clone = 'true';
+          
+          // Single click to open preview
+          img.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.openPreview(card.image);
+          });
+          
+          // Double-tap zoom
+          let lastTap = 0;
+          img.addEventListener('touchend', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            
+            if (tapLength < 300 && tapLength > 0) {
+              // Double tap detected
+              e.preventDefault();
+              this.toggleGalleryZoom();
+            }
+            lastTap = currentTime;
+          });
+          
+          this.gallery.appendChild(img);
+        };
+        
+        // Add clone of last image at the beginning (for smooth left wrap)
+        if (this.images.length > 0) {
+          addImageToGallery(this.images[this.images.length - 1], this.images.length - 1, true);
+        }
+        
+        // Add all regular images
+        this.images.forEach((card, i) => {
+          addImageToGallery(card, i, false);
+        });
+        
+        // Add clone of first image at the end (for smooth right wrap)
+        if (this.images.length > 0) {
+          addImageToGallery(this.images[0], 0, true);
+        }
+        
+        // Adjust initial index to account for prepended clone
+        this.index = 1;
+        
+        // Update overlay with correct initial index
+        this.updateOverlay();
+      }
+      
+      toggleGalleryZoom() {
+        const activeImg = this.gallery.querySelector('.gallery-image.active');
+        if (!activeImg) return;
+        
+        const currentScale = activeImg.style.transform.match(/scale\(([^)]+)\)/) 
+          ? parseFloat(activeImg.style.transform.match(/scale\(([^)]+)\)/)[1]) 
+          : 1;
+        
+        const newScale = currentScale === 1 ? 2 : 1;
+        activeImg.style.transition = 'transform 0.3s ease-out';
+        activeImg.style.transform = `scale(${newScale})`;
+        activeImg.style.transformOrigin = 'center center';
+      }
+      
+      renderBubbles() {
+        const bubbles = document.getElementById('bubbles');
+        this.images.forEach((_, i) => {
+          const bubble = document.createElement('div');
+          bubble.className = 'image-bubble' + (i === 0 ? ' active' : '');
+          bubbles.appendChild(bubble);
+        });
+      }
+      
+      attachListeners() {
+        this.gallery.addEventListener('touchstart', (e) => this.onStart(e), { passive: true });
+        this.gallery.addEventListener('touchmove', (e) => this.onMove(e), { passive: false });
+        this.gallery.addEventListener('touchend', (e) => this.onEnd(e), { passive: true });
+        
+        // Overlay drag handled below with proper parameters
+        
+        const closeBtn = document.getElementById('previewClose');
+        closeBtn.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          this.closePreview();
+        }, { passive: false });
+        closeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.closePreview();
+        });
+        
+        this.previewModal.addEventListener('touchstart', (e) => {
+          if (e.target === this.previewModal) this.closePreview();
+        }, { passive: true });
+        this.previewModal.addEventListener('click', (e) => {
+          if (e.target === this.previewModal) this.closePreview();
+        });
+        
+        // Handle overlay dragging for info overlay
+        if (this.infoOverlay) {
+          this.attachOverlayDrag(this.infoOverlay);
+        }
+        
+        // POI listeners are now initialized in initPOISystem()
+        
+        // Add window resize listener for dynamic button positioning
+        window.addEventListener('resize', () => {
+          this.updateButtonPositions();
+        }, { passive: true });
+        
+        // Initial button positioning
+        setTimeout(() => {
+          this.updateButtonPositions();
+        }, 100);
+      }
+      
+      attachOverlayDrag(overlayElement) {
+        // Check if overlay element exists
+        if (!overlayElement) {
+          console.warn('Overlay element is undefined');
+          return;
+        }
+        
+        let startY = 0;
+        const maxHeight = window.innerHeight * 0.65;
+        const handle = overlayElement.querySelector('.overlay-handle');
+        
+        // Calculate dynamic minimized height based on content up to overlay-section
+        const calculateMinHeight = () => {
+          const overlayContent = this.overlayContent;
+          if (!overlayContent) return 300; // fallback
+          
+          // Find the overlay-section element
+          const overlaySection = overlayContent.querySelector('.overlay-section');
+          if (!overlaySection) return 300; // fallback
+          
+          // Get the position of overlay-section relative to overlay-content
+          const contentRect = overlayContent.getBoundingClientRect();
+          const sectionRect = overlaySection.getBoundingClientRect();
+          
+          // Calculate height needed to show everything before overlay-section
+          const minHeight = sectionRect.top - contentRect.top + 20; // Add some padding
+          
+          // Ensure minimum height and reasonable maximum
+          return Math.max(200, Math.min(minHeight, 400));
+        };
+        
+        const minHeight = calculateMinHeight();
+        
+        // Check if handle exists
+        if (!handle) {
+          console.warn('No overlay handle found for element:', overlayElement);
+          return;
+        }
+        
+        // Set initial flex-basis to minHeight (minimized state)
+        overlayElement.style.flexBasis = minHeight + 'px';
+        
+        const updateScrollability = () => {
+          const computedStyle = window.getComputedStyle(overlayElement);
+          const currentFlexBasis = parseFloat(computedStyle.flexBasis);
+          const isFullyExpanded = currentFlexBasis >= maxHeight - 20;
+          
+          // Get the appropriate content element for this overlay
+          const contentElement = this.overlayContent;
+          
+          if (contentElement) {
+            contentElement.style.overflowY = isFullyExpanded ? 'auto' : 'hidden';
+          }
+          
+          // Button visibility is now handled separately in drag events
+          // Don't update here to allow more precise control
+        };
+        
+        const handleDragStart = (e) => {
+          e.preventDefault();
+          startY = e.touches ? e.touches[0].clientY : e.clientY;
+          overlayElement.style.transition = 'none';
+          this.gallery.classList.add('dragging');
+          
+          // Hide buttons immediately when dragging starts
+          this.updateButtonVisibility(false);
+        };
+        
+        const handleDragMove = (e) => {
+          if (startY === 0) return;
+          
+          e.preventDefault();
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          const diff = startY - clientY;
+          const currentHeight = overlayElement.offsetHeight;
+          const newHeight = Math.max(minHeight, Math.min(maxHeight, currentHeight + diff));
+          
+          overlayElement.style.flexBasis = newHeight + 'px';
+          updateScrollability();
+          startY = clientY;
+        };
+        
+        const handleDragEnd = (e) => {
+          if (startY === 0) return;
+          
+          startY = 0;
+          this.gallery.classList.remove('dragging');
+          const currentHeight = overlayElement.offsetHeight;
+          const midpoint = (minHeight + maxHeight) / 2;
+          
+          overlayElement.style.transition = 'flex-basis 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+          
+          if (currentHeight < midpoint) {
+            // Minimized state - show buttons after transition
+            overlayElement.style.flexBasis = minHeight + 'px';
+            // Smooth scroll to top when minimizing
+            const contentElement = this.overlayContent;
+            if (contentElement) {
+              contentElement.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+              });
+            }
+            
+            // Show buttons after the overlay settles in minimized state
+            setTimeout(() => {
+              this.updateButtonVisibility(true);
+            }, 300);
+          } else {
+            // Expanded state - keep buttons hidden
+            overlayElement.style.flexBasis = maxHeight + 'px';
+            this.updateButtonVisibility(false);
+          }
+          
+          setTimeout(() => {
+            updateScrollability();
+          }, 300);
+        };
+        
+        // Touch events - attach to handle for better touch handling
+        handle.addEventListener('touchstart', handleDragStart, { passive: false });
+        document.addEventListener('touchmove', handleDragMove, { passive: false });
+        document.addEventListener('touchend', handleDragEnd, false);
+        
+        // Mouse events (for desktop testing) - attach to handle
+        handle.addEventListener('mousedown', handleDragStart, false);
+        document.addEventListener('mousemove', handleDragMove, { passive: false });
+        document.addEventListener('mouseup', handleDragEnd, false);
+        
+        // Initial state
+        updateScrollability();
+        
+        // Show buttons initially since overlay starts minimized
+        setTimeout(() => {
+          this.updateButtonVisibility(true);
+        }, 100);
+      }
+      
+      onStart(e) {
+        if (this.isAnimating) return;
+        this.touchStart = e.touches[0].clientX;
+        this.isDragging = true;
+        this.gallery.querySelectorAll('.gallery-image').forEach(img => {
+          img.style.transition = 'none';
+        });
+      }
+      
+      onMove(e) {
+        if (!this.isDragging) return;
+        e.preventDefault();
+        
+        const diff = e.touches[0].clientX - this.touchStart;
+        const percent = (diff / this.gallery.offsetWidth) * 100;
+        
+        this.gallery.querySelectorAll('.gallery-image').forEach((img, i) => {
+          const offset = (i - this.index) * 100;
+          img.style.transform = `translateX(${offset + percent}%)`;
+        });
+      }
+      
+      onEnd(e) {
+        if (!this.isDragging) return;
+        this.isDragging = false;
+        
+        const diff = e.changedTouches[0].clientX - this.touchStart;
+        const threshold = this.gallery.offsetWidth * 0.2;
+        
+        // With clones: index 0 is last image clone, 1 to total is real images, total+1 is first image clone
+        if (diff > threshold) {
+          // Swiping right (previous image)
+          this.index--;
+        } else if (diff < -threshold) {
+          // Swiping left (next image)
+          this.index++;
+        }
+        
+        this.animate();
+      }
+      
+      animate() {
+        this.isAnimating = true;
+        this.gallery.querySelectorAll('.gallery-image').forEach(img => {
+          img.style.transition = 'transform 0.2s linear';
+        });
+        
+        this.gallery.querySelectorAll('.gallery-image').forEach((img, i) => {
+          img.style.transform = `translateX(${(i - this.index) * 100}%)`;
+        });
+        
+        setTimeout(() => {
+          this.handleWrap();
+          this.update();
+          this.isAnimating = false;
+        }, 200);
+      }
+      
+      handleWrap() {
+        const totalWithClones = this.total + 2; // clone_last + real_images + clone_first
+        
+        // If we're at or past the last clone (first image), jump to real first image
+        if (this.index >= totalWithClones - 1) {
+          this.index = 1;
+          this.gallery.querySelectorAll('.gallery-image').forEach(img => {
+            img.style.transition = 'none';
+          });
+          this.gallery.querySelectorAll('.gallery-image').forEach((img, i) => {
+            img.style.transform = `translateX(${(i - this.index) * 100}%)`;
+          });
+        }
+        // If we're at or before the first clone (last image), jump to real last image
+        else if (this.index <= 0) {
+          this.index = this.total;
+          this.gallery.querySelectorAll('.gallery-image').forEach(img => {
+            img.style.transition = 'none';
+          });
+          this.gallery.querySelectorAll('.gallery-image').forEach((img, i) => {
+            img.style.transform = `translateX(${(i - this.index) * 100}%)`;
+          });
+        }
+      }
+      
+      update() {
+        // Images - adjust for clone at beginning
+        this.gallery.querySelectorAll('.gallery-image').forEach((img, i) => {
+          const realIndex = i === 0 ? this.total : (i === this.total + 1 ? 0 : i - 1);
+          img.classList.toggle('active', i === this.index);
+        });
+        
+        // Bubbles - only update for real images (skip clones)
+        const bubbles = document.querySelectorAll('.image-bubble');
+        bubbles.forEach((b, i) => {
+          // Map bubble index to image index (accounting for clone at position 0)
+          b.classList.toggle('active', i === this.index - 1);
+        });
+        
+        this.updateOverlay();
+      }
+      
+      goTo(i) {
+        if (i === this.index || this.isAnimating) return;
+        this.index = i;
+        this.animate();
+      }
+      
+      updateOverlay() {
+        // Map clone indices to real image indices
+        let realIndex = this.index;
+        if (this.index === 0) {
+          // Clone at beginning (last image)
+          realIndex = this.total - 1;
+        } else if (this.index >= this.total + 1) {
+          // Clone at end (first image)
+          realIndex = 0;
+        } else {
+          // Real image (subtract 1 because of clone at beginning)
+          realIndex = this.index - 1;
+        }
+        
+        const card = this.images[realIndex];
+        const features = this.features || { content_ro: '', content_ru: '' };
+        
+        // Determine which button should be active based on persisted language
+        const roButtonActive = this.lang === 'ro' ? 'active' : '';
+        const ruButtonActive = this.lang === 'ru' ? 'active' : '';
+        
+        // Determine initial visibility based on persisted language
+        const roDisplay = this.lang === 'ro' ? '' : 'display:none;';
+        const ruDisplay = this.lang === 'ru' ? '' : 'display:none;';
+        
+        // Save current map state before destroying content
+        let savedMapState = null;
+        if (this.mapInitialized && this.leafletMap) {
+          try {
+            savedMapState = {
+              center: this.leafletMap.getCenter(),
+              zoom: this.leafletMap.getZoom(),
+              activePOICategory: this.activePOICategory,
+              mapData: this.mapData // Preserve map data reference
+            };
+          } catch (error) {
+            console.warn('Failed to save map state:', error);
+            savedMapState = null;
+          }
+        }
+        
+        // Determine which POI button should be active based on saved state
+        const getPOIButtonActive = (parent) => {
+          return savedMapState && savedMapState.activePOICategory === parent ? 'active' : '';
+        };
+        
+        // Preserve map container if it exists
+        const mapContainer = document.getElementById('leafletMap');
+        const mapHTML = mapContainer ? mapContainer.outerHTML : '<div id="leafletMap" class="leaflet-map"></div>';
+        
+        this.overlayContent.innerHTML = `
+          <div class="overlay-header">
+            <h1 class="i18n ro" style="${roDisplay}">${card.title}</h1>
+            <h1 class="i18n ru" style="${ruDisplay}">${card.title}</h1>
+          </div>
+          
+          <div class="overlay-meta">
+            <div class="meta-item">
+              <span class="meta-label i18n ro" style="${roDisplay}">Locație</span>
+              <span class="meta-label i18n ru" style="${ruDisplay}">Местоположение</span>
+              <span class="meta-value i18n ro" style="${roDisplay}">${card.address}</span>
+              <span class="meta-value i18n ru" style="${ruDisplay}">${card.address}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label i18n ro" style="${roDisplay}">Preț</span>
+              <span class="meta-label i18n ru" style="${ruDisplay}">Цена</span>
+              <span class="meta-value i18n ro" style="${roDisplay}">${card.price}</span>
+              <span class="meta-value i18n ru" style="${ruDisplay}">${card.price}</span>
+            </div>
+          </div>
+          
+          <div class="overlay-section">
+            <h2 class="section-title i18n ro" style="${roDisplay}">${card.label_ro}</h2>
+            <h2 class="section-title i18n ru" style="${ruDisplay}">${card.label_ru}</h2>
+            <p class="section-text i18n ro" style="${roDisplay}">${card.text_ro}</p>
+            <p class="section-text i18n ru" style="${ruDisplay}">${card.text_ru}</p>
+          </div>
+          
+          <div class="overlay-contact">
+            <a href="tel:${card.contact_clean}" class="contact-button">
+              <span>📞</span>
+              <span class="i18n ro" style="${roDisplay}">${card.contact_ro}</span>
+              <span class="i18n ru" style="${ruDisplay}">${card.contact_ru}</span>
+            </a>
+          </div>
+          
+          <div class="overlay-features i18n ro" style="${roDisplay}">${features.content_ro}</div>
+          <div class="overlay-features i18n ru" style="${ruDisplay}">${features.content_ru}</div>
+          
+          <!-- Map Section -->
+          <div class="overlay-map-section">
+            <!-- POI Toolbar -->
+            <div class="poi-toolbar row1">
+              <button class="poi-btn ${getPOIButtonActive('schools')}" data-parent="schools">
+                <span class="i18n ro">Școli</span>
+                <span class="i18n ru" style="display:none;">Школы</span>
+              </button>
+              <button class="poi-btn ${getPOIButtonActive('medical')}" data-parent="medical">
+                <span class="i18n ro">Medical</span>
+                <span class="i18n ru" style="display:none;">Фарма</span>
+              </button>
+              <button class="poi-btn ${getPOIButtonActive('banks')}" data-parent="banks">
+                <span class="i18n ro">Bănci</span>
+                <span class="i18n ru" style="display:none;">Банки</span>
+              </button>
+            </div>
+            <div class="poi-toolbar row2">
+              <button class="poi-btn ${getPOIButtonActive('supermarkets')}" data-parent="supermarkets">
+                <span class="i18n ro">Magazin</span>
+                <span class="i18n ru" style="display:none;">Магазин</span>
+              </button>
+              <button class="poi-btn ${getPOIButtonActive('restaurants')}" data-parent="restaurants">
+                <span class="i18n ro">Restaurante</span>
+                <span class="i18n ru" style="display:none;">Рестораны</span>
+              </button>
+            </div>
+            
+            <!-- Map Container -->
+            ${mapHTML}
+          </div>
+        `;
+        
+        // Initialize map when overlay is first shown
+        if (!this.mapInitialized) {
+          this.initMap();
+          this.mapInitialized = true;
+        } else {
+          // Safer map re-attachment approach
+          const newMapContainer = document.getElementById('leafletMap');
+          if (newMapContainer && this.leafletMap) {
+            try {
+              // Clear the new container completely
+              newMapContainer.innerHTML = '';
+              
+              // Get the map container element
+              const mapContainerEl = this.leafletMap.getContainer();
+              if (mapContainerEl && mapContainerEl.parentNode) {
+                // Remove from old parent if it has one
+                mapContainerEl.parentNode.removeChild(mapContainerEl);
+              }
+              
+              // Append to new container
+              newMapContainer.appendChild(mapContainerEl);
+              
+              // Restore map data if preserved
+              if (savedMapState && savedMapState.mapData) {
+                this.mapData = savedMapState.mapData;
+              }
+              
+              // Invalidate size and trigger re-rendering
+              setTimeout(() => {
+                if (this.leafletMap) {
+                  this.leafletMap.invalidateSize();
+                  
+                  // Restore saved map state
+                  if (savedMapState) {
+                    // Restore center and zoom
+                    this.leafletMap.setView(savedMapState.center, savedMapState.zoom);
+                    
+                    // Restore active POI category layers without button manipulation
+                    if (savedMapState.activePOICategory) {
+                      // Find all POI types for this parent category
+                      const poiTypeKeys = Object.entries(this.poiCategories)
+                        .filter(([key, config]) => config.parent === savedMapState.activePOICategory)
+                        .map(([key]) => key);
+                      
+                      // Show existing POI layers with safety checks
+                      poiTypeKeys.forEach(key => {
+                        if (this.poiLayers[key] && this.leafletMap) {
+                          try {
+                            if (!this.leafletMap.hasLayer(this.poiLayers[key])) {
+                              this.leafletMap.addLayer(this.poiLayers[key]);
+                            }
+                          } catch (error) {
+                            console.warn('Failed to add POI layer:', key, error);
+                          }
+                        }
+                      });
+                    }
+                  }
+                }
+              }, 50);
+              
+            } catch (error) {
+              console.error('Error re-attaching map:', error);
+              // Fallback: reinitialize map completely
+              this.initMap();
+            }
+          }
+        }
+        
+        // Re-attach POI listeners since the buttons were recreated
+        this.initPOIListeners();
+        
+        // Attach language button listeners after content is rendered
+        this.attachLanguageButtonListeners();
+      }
+      
+      attachLanguageButtonListeners() {
+        // Handle toggle button click
+        const toggleBtn = this.overlayContent.querySelector('#lang-toggle-btn');
+        const langButtons = this.overlayContent.querySelector('#lang-buttons');
+        
+        if (toggleBtn && langButtons) {
+          toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Toggle visibility of language buttons
+            const isVisible = langButtons.classList.contains('visible');
+            if (isVisible) {
+              langButtons.classList.remove('visible');
+            } else {
+              langButtons.classList.add('visible');
+            }
+          });
+          
+          // Close language buttons when clicking outside
+          document.addEventListener('click', (e) => {
+            if (!e.target.closest('.overlay-lang-toggle')) {
+              langButtons.classList.remove('visible');
+            }
+          });
+        }
+        
+        // Handle language button clicks
+        const langBtns = this.overlayContent.querySelectorAll('.overlay-lang-btn');
+        langBtns.forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const lang = btn.dataset.lang;
+            
+            // Update active button
+            langBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Save language preference to sessionStorage
+            this.lang = lang;
+            sessionStorage.setItem('thunderGalleryLang', lang);
+            
+            // Toggle language visibility in overlay content
+            const roElements = this.overlayContent.querySelectorAll('.i18n.ro');
+            const ruElements = this.overlayContent.querySelectorAll('.i18n.ru');
+            
+            if (lang === 'ro') {
+              roElements.forEach(el => el.style.display = '');
+              ruElements.forEach(el => el.style.display = 'none');
+            } else {
+              roElements.forEach(el => el.style.display = 'none');
+              ruElements.forEach(el => el.style.display = '');
+            }
+          });
+        });
+        
+        // Theme toggle functionality
+        const themeToggle = this.overlayContent.querySelector('#theme-toggle');
+        if (themeToggle) {
+          // Determine initial theme
+          const savedTheme = localStorage.getItem('thunderGalleryTheme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+          
+          // Apply initial theme
+          this.applyTheme(isDark);
+          
+          themeToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const currentlyDark = document.body.classList.contains('dark-mode');
+            const newDark = !currentlyDark;
+            
+            this.applyTheme(newDark);
+            localStorage.setItem('thunderGalleryTheme', newDark ? 'dark' : 'light');
+          });
+        }
+        
+        // Settings button functionality - toggle switches
+        const settingsBtn = document.getElementById('settingsButton');
+        const themeToggleContainer = document.getElementById('themeToggleContainer');
+        const langToggleContainer = document.getElementById('langToggleContainer');
+        const themeToggleSwitch = document.getElementById('themeToggleSwitch');
+        const langToggleSwitch = document.getElementById('langToggleSwitch');
+        const themeLabel = themeToggleContainer?.querySelector('.toggle-label');
+        const langLabel = langToggleContainer?.querySelector('.toggle-label');
+        
+        let togglesVisible = false;
+        
+        if (settingsBtn && themeToggleContainer && langToggleContainer) {
+          // Toggle settings switches
+          settingsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            togglesVisible = !togglesVisible;
+            
+            if (togglesVisible) {
+              // Position toggle containers directly above settings button (no animation)
+              const settingsRect = settingsButtonContainer.getBoundingClientRect();
+              const settingsBottom = parseFloat(settingsButtonContainer.style.bottom) || finalBottom;
+              
+              // Language toggle - positioned 140px above settings button
+              langToggleContainer.style.bottom = `${settingsBottom + 140}px`;
+              
+              // Theme toggle - positioned 80px above settings button
+              themeToggleContainer.style.bottom = `${settingsBottom + 80}px`;
+              
+              themeToggleContainer.style.left = '25px';
+              langToggleContainer.style.left = '25px';
+              
+              // Show toggle containers immediately
+              themeToggleContainer.classList.add('visible');
+              langToggleContainer.classList.add('visible');
+              
+              // Set current states immediately
+              this.updateToggleStates();
+              
+              // Remove auto-collapse timeout - keep open until user clicks elsewhere
+              clearTimeout(this.toggleTimeout);
+              
+            } else {
+              // Hide toggle containers
+              this.hideToggleContainers();
+            }
+          });
+          
+          // Theme toggle functionality
+          if (themeToggleSwitch) {
+            themeToggleSwitch.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              const isDark = document.body.classList.contains('dark-mode');
+              this.applyTheme(!isDark);
+              localStorage.setItem('thunderGalleryTheme', !isDark ? 'dark' : 'light');
+              
+              // Update toggle state
+              themeToggleSwitch.classList.toggle('active', !isDark);
+              
+              // Hide toggles after change
+              setTimeout(() => {
+                this.hideToggleContainers();
+                togglesVisible = false;
+              }, 300); // Wait for animation to complete
+            });
+          }
+          
+          // Language toggle functionality
+          if (langToggleSwitch) {
+            langToggleSwitch.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              const newLang = this.lang === 'ro' ? 'ru' : 'ro';
+              this.lang = newLang;
+              sessionStorage.setItem('thunderGalleryLang', newLang);
+              
+              // Update overlay language
+              this.updateOverlayLanguage();
+              
+              // Update toggle state
+              langToggleSwitch.classList.toggle('active', newLang === 'ru');
+              
+              // Hide toggles after change
+              setTimeout(() => {
+                this.hideToggleContainers();
+                togglesVisible = false;
+              }, 300); // Wait for animation to complete
+            });
+          }
+          
+          // Add click-outside listener to close toggles
+          document.addEventListener('click', (e) => {
+            if (togglesVisible && 
+                !settingsButtonContainer.contains(e.target) &&
+                !themeToggleContainer.contains(e.target) &&
+                !langToggleContainer.contains(e.target)) {
+              this.hideToggleContainers();
+              togglesVisible = false;
+            }
+          });
+          
+          // Add listeners to hide toggles when interacting with overlay
+          const infoOverlay = document.getElementById('infoOverlay');
+          const overlayContent = document.getElementById('overlayContent');
+          const gallery = document.getElementById('gallery');
+          
+          if (infoOverlay) {
+            infoOverlay.addEventListener('click', () => {
+              // Hide all buttons including toggles
+              this.hideAllButtons();
+              togglesVisible = false;
+            });
+          }
+          
+          if (overlayContent) {
+            overlayContent.addEventListener('click', () => {
+              // Hide all buttons including toggles
+              this.hideAllButtons();
+              togglesVisible = false;
+            });
+          }
+          
+          if (gallery) {
+            // Add swipe detection for image carousel
+            let startX = 0;
+            let startY = 0;
+            let isDragging = false;
+            
+            gallery.addEventListener('mousedown', (e) => {
+              startX = e.clientX;
+              startY = e.clientY;
+              isDragging = true;
+            });
+            
+            gallery.addEventListener('mouseup', (e) => {
+              if (isDragging) {
+                const endX = e.clientX;
+                const endY = e.clientY;
+                const deltaX = Math.abs(endX - startX);
+                const deltaY = Math.abs(endY - startY);
+                
+                // Check if it's a horizontal swipe (more horizontal than vertical)
+                if (deltaX > 50 && deltaX > deltaY * 2) {
+                  // Hide only toggles on swipe, keep other buttons visible
+                  this.hideToggleContainers();
+                  togglesVisible = false;
+                }
+                isDragging = false;
+              }
+            });
+            
+            gallery.addEventListener('mouseleave', () => {
+              isDragging = false;
+            });
+            
+            // Also hide toggles on regular click
+            gallery.addEventListener('click', () => {
+              if (togglesVisible) {
+                this.hideToggleContainers();
+                togglesVisible = false;
+              }
+            });
+          }
+        }
+      }
+      
+      updateOverlayLanguage() {
+        const roElements = this.overlayContent.querySelectorAll('.i18n.ro');
+        const ruElements = this.overlayContent.querySelectorAll('.i18n.ru');
+        
+        if (this.lang === 'ro') {
+          roElements.forEach(el => el.style.display = '');
+          ruElements.forEach(el => el.style.display = 'none');
+        } else {
+          roElements.forEach(el => el.style.display = 'none');
+          ruElements.forEach(el => el.style.display = '');
+        }
+        
+        // Update call button text
+        const callTextRo = document.querySelector('.call-text.i18n.ro');
+        const callTextRu = document.querySelector('.call-text.i18n.ru');
+        
+        if (callTextRo && callTextRu) {
+          if (this.lang === 'ro') {
+            callTextRo.style.display = '';
+            callTextRu.style.display = 'none';
+          } else {
+            callTextRo.style.display = 'none';
+            callTextRu.style.display = '';
+          }
+        }
+      }
+      
+      applyTheme(isDark) {
+        document.body.classList.toggle('dark-mode', isDark);
+        
+        const themeToggle = this.overlayContent.querySelector('#theme-toggle');
+        if (themeToggle) {
+          themeToggle.textContent = isDark ? '☀️' : '🌙';
+          themeToggle.title = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+          themeToggle.setAttribute('aria-pressed', String(isDark));
+        }
+      }
+      
+      updateButtonPositions() {
+        const callButtonContainer = document.getElementById('callButtonContainer');
+        const shareButtonContainer = document.getElementById('shareButtonContainer');
+        const settingsButtonContainer = document.getElementById('settingsButtonContainer');
+        const themeToggleContainer = document.getElementById('themeToggleContainer');
+        const langToggleContainer = document.getElementById('langToggleContainer');
+        
+        if (!callButtonContainer || !shareButtonContainer || !settingsButtonContainer) return;
+        
+        // Get overlay handle position
+        const overlayHandle = document.querySelector('.overlay-handle');
+        if (!overlayHandle) return;
+        
+        const handleRect = overlayHandle.getBoundingClientRect();
+        const handleTop = handleRect.top;
+        
+        // Calculate 7% of handle distance from top
+        const spacingFromHandle = handleTop * 0.07;
+        
+        // Calculate final bottom position (window height minus handle position minus spacing)
+        const finalBottom = (window.innerHeight - handleTop) + spacingFromHandle;
+        
+        // Apply dynamic positioning to main buttons
+        const containers = [callButtonContainer, shareButtonContainer, settingsButtonContainer];
+        containers.forEach(container => {
+          container.style.bottom = `${finalBottom}px`;
+        });
+        
+        // Special handling for call button centering
+        if (callButtonContainer) {
+          callButtonContainer.style.left = '50%';
+          callButtonContainer.style.transform = 'translateX(-50%)';
+        }
+        
+        // Position toggle containers relative to settings button
+        if (settingsButtonContainer && themeToggleContainer && langToggleContainer) {
+          const settingsRect = settingsButtonContainer.getBoundingClientRect();
+          const settingsBottom = parseFloat(settingsButtonContainer.style.bottom) || finalBottom;
+          
+          // Language toggle - positioned 140px above settings button (highest)
+          langToggleContainer.style.bottom = `${settingsBottom + 140}px`;
+          
+          // Theme toggle - positioned 70px above settings button (middle)
+          themeToggleContainer.style.bottom = `${settingsBottom + 70}px`;
+          
+          // Ensure they're positioned correctly from the left edge
+          themeToggleContainer.style.left = '25px';
+          langToggleContainer.style.left = '25px';
+        }
+      }
+      
+      updateButtonVisibility(showButtons) {
+        const callButtonContainer = document.getElementById('callButtonContainer');
+        const shareButtonContainer = document.getElementById('shareButtonContainer');
+        const settingsButtonContainer = document.getElementById('settingsButtonContainer');
+        
+        if (callButtonContainer && shareButtonContainer && settingsButtonContainer) {
+          if (showButtons) {
+            callButtonContainer.classList.add('visible');
+            shareButtonContainer.classList.add('visible');
+            settingsButtonContainer.classList.add('visible');
+            // Update positions when showing buttons
+            this.updateButtonPositions();
+          } else {
+            callButtonContainer.classList.remove('visible');
+            shareButtonContainer.classList.remove('visible');
+            settingsButtonContainer.classList.remove('visible');
+          }
+        }
+      }
+      
+      hideAllButtons() {
+        const themeToggleContainer = document.getElementById('themeToggleContainer');
+        const langToggleContainer = document.getElementById('langToggleContainer');
+        const settingsButtonContainer = document.getElementById('settingsButtonContainer');
+        const callButtonContainer = document.getElementById('callButtonContainer');
+        const shareButtonContainer = document.getElementById('shareButtonContainer');
+        
+        // Hide toggle containers
+        if (themeToggleContainer) {
+          themeToggleContainer.classList.remove('visible');
+        }
+        if (langToggleContainer) {
+          langToggleContainer.classList.remove('visible');
+        }
+        
+        // Hide all action buttons
+        if (settingsButtonContainer) {
+          settingsButtonContainer.classList.remove('visible');
+        }
+        if (callButtonContainer) {
+          callButtonContainer.classList.remove('visible');
+        }
+        if (shareButtonContainer) {
+          shareButtonContainer.classList.remove('visible');
+        }
+      }
+      
+      hideToggleContainers() {
+        const themeToggleContainer = document.getElementById('themeToggleContainer');
+        const langToggleContainer = document.getElementById('langToggleContainer');
+        
+        if (themeToggleContainer) {
+          themeToggleContainer.classList.remove('visible');
+        }
+        if (langToggleContainer) {
+          langToggleContainer.classList.remove('visible');
+        }
+      }
+      
+      updateToggleStates() {
+        const themeToggleSwitch = document.getElementById('themeToggleSwitch');
+        const langToggleSwitch = document.getElementById('langToggleSwitch');
+        
+        // Update theme toggle state
+        if (themeToggleSwitch) {
+          const isDark = document.body.classList.contains('dark-mode');
+          themeToggleSwitch.classList.toggle('active', isDark);
+        }
+        
+        // Update language toggle state
+        if (langToggleSwitch) {
+          langToggleSwitch.classList.toggle('active', this.lang === 'ru');
+        }
+      }
+      
+      setupButtonFunctionality() {
+        // Setup call button
+        const callButton = document.getElementById('callButton');
+        if (callButton) {
+          callButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.handleCallAction();
+          });
+        }
+        
+        // Setup share button
+        const shareButton = document.getElementById('shareButton');
+        if (shareButton) {
+          shareButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.handleShareAction();
+          });
+        }
+      }
+      
+      handleCallAction() {
+        // Get current card data for contact information
+        const currentCard = this.images[this.index - 1] || this.images[0];
+        if (currentCard && currentCard.contact_clean) {
+          window.location.href = `tel:${currentCard.contact_clean}`;
+        } else {
+          console.warn('No contact information available for call action');
+        }
+      }
+      
+      handleShareAction() {
+        // Get the actual listing URL from Open Graph meta tag
+        const ogUrlMeta = document.querySelector('meta[property="og:url"]');
+        const actualUrl = ogUrlMeta ? ogUrlMeta.getAttribute('content') : window.location.href;
+        
+        console.log('🏠 Current window location:', window.location.href);
+        console.log('📋 Open Graph URL from meta tag:', ogUrlMeta ? ogUrlMeta.getAttribute('content') : 'Not found');
+        
+        // Share URL only - Open Graph tags will handle the preview
+        try {
+          if (navigator.share) {
+            const shareData = {
+              url: actualUrl
+            };
+            
+            try {
+              if (navigator.canShare(shareData)) {
+                navigator.share(shareData);
+                console.log('✅ SUCCESS: URL shared (Open Graph will generate preview)');
+                return;
+              }
+            } catch (err) {
+              if (err.name === 'AbortError') {
+                console.log('Share cancelled by user');
+                return;
+              }
+              console.log('⚠️ URL sharing failed:', err);
+            }
+          }
+          
+          // Fallback: Copy to clipboard
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(actualUrl).then(() => {
+              console.log('✅ SUCCESS: URL copied to clipboard');
+              // Show brief feedback
+              this.showShareFeedback();
+            }).catch(() => {
+              console.log('❌ Clipboard copy failed, using prompt fallback');
+              const promptMessages = {
+                ro: 'Copiază acest link pentru a-l distribui:',
+                ru: 'Скопируйте эту ссылку для обмена:'
+              };
+              const promptText = promptMessages[this.lang] || 'Copy this link to share:';
+              prompt(promptText, actualUrl);
+            });
+          } else {
+            // Final fallback: prompt
+            const promptMessages = {
+              ro: 'Copiază acest link pentru a-l distribui:',
+              ru: 'Скопируйте эту ссылку для обмена:'
+            };
+            const promptText = promptMessages[this.lang] || 'Copy this link to share:';
+            prompt(promptText, actualUrl);
+          }
+        } catch (error) {
+          console.error('Unexpected error in share handler:', error);
+          const promptMessages = {
+            ro: 'Copiază acest link pentru a-l distribui:',
+            ru: 'Скопируйте эту ссылку для обмена:'
+          };
+          const promptText = promptMessages[this.lang] || 'Copy this link to share:';
+          prompt(promptText, actualUrl);
+        }
+      }
+      
+      showShareFeedback() {
+        const shareButton = document.getElementById('shareButton');
+        if (shareButton) {
+          const originalContent = shareButton.innerHTML;
+          shareButton.innerHTML = '✓';
+          shareButton.style.background = '#10b981';
+          
+          setTimeout(() => {
+            shareButton.innerHTML = originalContent;
+            shareButton.style.background = '';
+          }, 2000);
+        }
+      }
+      
+      openPreview(imageSrc) {
+        this.previewImage.src = imageSrc;
+        this.previewImage.style.transform = 'scale(1)';
+        this.previewModal.classList.add('active');
+        
+        this.previewIndex = this.images.findIndex(card => card.image === imageSrc);
+        this.updatePreviewNavButtons();
+        this.attachPreviewZoom();
+        this.attachPreviewNavigation();
+      }
+      
+      updatePreviewNavButtons() {
+        const prevBtn = document.getElementById('previewPrev');
+        const nextBtn = document.getElementById('previewNext');
+        
+        prevBtn.disabled = this.previewIndex <= 0;
+        nextBtn.disabled = this.previewIndex >= this.images.length - 1;
+        
+        prevBtn.style.opacity = prevBtn.disabled ? '0.3' : '1';
+        nextBtn.style.opacity = nextBtn.disabled ? '0.3' : '1';
+      }
+      
+      attachPreviewNavigation() {
+        const prevBtn = document.getElementById('previewPrev');
+        const nextBtn = document.getElementById('previewNext');
+        
+        prevBtn.onclick = () => this.previewPreviousImage();
+        nextBtn.onclick = () => this.previewNextImage();
+      }
+      
+      previewPreviousImage() {
+        if (this.previewIndex > 0) {
+          this.previewIndex--;
+          const card = this.images[this.previewIndex];
+          this.previewImage.src = card.image;
+          this.previewImage.style.transform = 'scale(1)';
+          this.updatePreviewNavButtons();
+          this.goTo(this.previewIndex);
+        }
+      }
+      
+      previewNextImage() {
+        if (this.previewIndex < this.images.length - 1) {
+          this.previewIndex++;
+          const card = this.images[this.previewIndex];
+          this.previewImage.src = card.image;
+          this.previewImage.style.transform = 'scale(1)';
+          this.updatePreviewNavButtons();
+          this.goTo(this.previewIndex);
+        }
+      }
+      
+      attachPreviewZoom() {
+        let initialDistance = 0;
+        let currentScale = 1;
+        const minScale = 1;
+        const maxScale = 3;
+        let isZooming = false;
+        
+        const getDistance = (touches) => {
+          if (touches.length < 2) return 0;
+          const dx = touches[0].clientX - touches[1].clientX;
+          const dy = touches[0].clientY - touches[1].clientY;
+          return Math.sqrt(dx * dx + dy * dy);
+        };
+        
+        const handleTouchStart = (e) => {
+          if (e.touches.length === 2) {
+            e.preventDefault();
+            isZooming = true;
+            initialDistance = getDistance(e.touches);
+            this.previewImage.style.transition = 'none';
+          }
+        };
+        
+        const handleTouchMove = (e) => {
+          if (!isZooming || e.touches.length !== 2) return;
+          
+          e.preventDefault();
+          const currentDistance = getDistance(e.touches);
+          
+          if (initialDistance === 0) {
+            initialDistance = currentDistance;
+            return;
+          }
+          
+          const scale = (currentDistance / initialDistance) * currentScale;
+          
+          if (scale < minScale) {
+            this.closePreview();
+            isZooming = false;
+            return;
+          }
+          
+          const newScale = Math.min(maxScale, Math.max(minScale, scale));
+          this.previewImage.style.transform = `scale(${newScale})`;
+        };
+        
+        const handleTouchEnd = (e) => {
+          if (!isZooming) return;
+          
+          isZooming = false;
+          const match = this.previewImage.style.transform.match(/scale\(([^)]+)\)/);
+          currentScale = match ? parseFloat(match[1]) : 1;
+          
+          // Reset transition for smooth scaling
+          this.previewImage.style.transition = 'transform 0.1s ease-out';
+        };
+        
+        this.previewContainer = this.previewContainer || document.querySelector('.preview-container');
+        this.previewContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+        this.previewContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+        this.previewContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
+        this.previewContainer.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+      }
+      
+      closePreview() {
+        this.previewModal.classList.remove('active');
+      }
+      
+      
+      initMap() {
+        if (this.leafletMap) return;
+        
+        // Initialize POI markers first
+        this.initializePOIMarkers();
+        
+        // Load Leaflet script if not already loaded
+        if (typeof L === 'undefined') {
+          const script = document.createElement('script');
+          script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+          script.onload = () => this.createMap();
+          document.head.appendChild(script);
+        } else {
+          this.createMap();
+        }
+      }
+      
+      createMap() {
+        // Use Luna-style map data approach
+        const mapDataElement = document.getElementById('map-data');
+        let listingLat = 47.0112527, listingLng = 28.7606561; // Default coordinates
+        
+        if (mapDataElement) {
+          try {
+            const mapData = JSON.parse(mapDataElement.textContent);
+            if (mapData && typeof mapData.lat !== 'undefined' && typeof mapData.lng !== 'undefined') {
+              listingLat = parseFloat(mapData.lat);
+              listingLng = parseFloat(mapData.lng);
+              console.log('Map coordinates from map_data template:', listingLat, listingLng);
+            }
+          } catch (e) {
+            console.warn('Failed to parse map_data:', e);
+          }
+        }
+        
+        // Fallback to card data if map_data not available
+        if (listingLat === 47.0112527 && this.cards && this.cards.length > 0) {
+          const mapCard = this.cards.find(c => c.type === 'map');
+          if (mapCard && mapCard.lat && mapCard.lng) {
+            listingLat = parseFloat(mapCard.lat);
+            listingLng = parseFloat(mapCard.lng);
+            console.log('Map coordinates from card data fallback:', listingLat, listingLng);
+          }
+        }
+        
+        // Store map data for POI system
+        this.mapData = { lat: listingLat, lng: listingLng };
+        
+        // Create the map with Luna-style configuration
+        this.leafletMap = L.map('leafletMap', {
+          zoomControl: false,
+          minZoom: 12,
+          maxZoom: 18,
+          preferCanvas: true
+        }).setView([listingLat, listingLng], 16);
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19
+        }).addTo(this.leafletMap);
+        
+        // Create a high z-index pane for the property marker
+        const propertyPaneName = 'propertyPane';
+        this.leafletMap.createPane(propertyPaneName);
+        const propertyPaneEl = this.leafletMap.getPane(propertyPaneName);
+        if (propertyPaneEl) {
+          propertyPaneEl.style.zIndex = '1000';
+          propertyPaneEl.style.pointerEvents = 'auto';
+        }
+        
+        // Initialize POI markers BEFORE creating property marker
+        this.initializePOIMarkers();
+        
+        // Add distinctive professional property pin marker (Luna-style)
+        this.listingMarker = L.marker([listingLat, listingLng], {
+          pane: propertyPaneName,
+          zIndexOffset: 100000,
+          icon: L.divIcon({
+            className: 'property-pin-marker',
+            html: `<div role="img" aria-label="Property location: ${this.mapData.title || 'Property'}">${this.poiMarkers.property.svg}</div>`,
+            iconSize: [50, 60],
+            iconAnchor: [25, 55],
+            popupAnchor: [0, -55]
+          }),
+          alt: this.mapData.title || 'Property Location',
+          title: this.mapData.title || 'Property Location'
+        }).addTo(this.leafletMap);
+        
+        // Extra safety: keep property marker on top
+        try { 
+          this.listingMarker.setZIndexOffset(100000);
+          // Add accessibility attributes after marker is created
+          const propertyMarkerEl = this.listingMarker.getElement();
+          if (propertyMarkerEl) {
+            propertyMarkerEl.setAttribute('aria-label', this.mapData.title || 'Property Location');
+            propertyMarkerEl.setAttribute('title', this.mapData.title || 'Property Location');
+          }
+        } catch (e) {}
+        
+        const propertyPopup = `<strong>📍 ${this.mapData.title || 'Property Location'}</strong>`;
+        this.listingMarker.bindPopup(propertyPopup);
+        
+        // Initialize Luna-style POI system
+        this.initPOISystem();
+      }
+      
+      // Initialize POI markers before map creation
+      initializePOIMarkers() {
+        this.poiMarkers = {
+          property: {
+            color: '#D4941E',
+            fillColor: '#FEB21A',
+            svg: `<svg width="50" height="60" viewBox="0 0 50 60" fill="none">
+              <path d="M25 5C18.373 5 13 10.373 13 17c0 10.5 12 18 12 18s12-7.5 12-18c0-6.627-5.373-12-12-12z" fill="#FEB21A" stroke="#D4941E" stroke-width="2"/>
+              <path d="M25 11l-7 5v9h14v-9l-7-5zm-2 6h4v5h-4v-5zm-5 6h14v1h-14v-1z" fill="white"/>
+            </svg>`
+          },
+          // Luna-style: organized by parent category
+          schools: {
+            color: '#1E40AF',
+            fillColor: '#3B82F6',
+            svg: `<svg width="50" height="60" viewBox="0 0 50 60" fill="none">
+              <path d="M25 5C18.373 5 13 10.373 13 17c0 10.5 12 18 12 18s12-7.5 12-18c0-6.627-5.373-12-12-12z" fill="#3B82F6" stroke="#1E40AF" stroke-width="2"/>
+              <path d="M25 11L18 15l7 3.5L32 15l-7-4zm0 5l-5-2.5v4c0 2.2 2.2 4 5 4s5-1.8 5-4v-4L25 16z" fill="white"/>
+            </svg>`
+          },
+          medical: {
+            color: '#C0392B',
+            fillColor: '#E74C3C',
+            svg: `<svg width="50" height="60" viewBox="0 0 50 60" fill="none">
+              <path d="M25 5C18.373 5 13 10.373 13 17c0 10.5 12 18 12 18s12-7.5 12-18c0-6.627-5.373-12-12-12z" fill="#E74C3C" stroke="#C0392B" stroke-width="2"/>
+              <path d="M22.5 14c-1.5 0-2.5 1-2.5 2.5 0 1 .5 2 1 2.5L25 24l4-5c.5-.5 1-1.5 1-2.5 0-1.5-1-2.5-2.5-2.5-1 0-2 .5-2.5 1.5-0.5-1-1.5-1.5-2.5-1.5z" fill="white"/>
+            </svg>`
+          },
+          banks: {
+            color: '#16A085',
+            fillColor: '#1ABC9C',
+            svg: `<svg width="50" height="60" viewBox="0 0 50 60" fill="none">
+              <path d="M25 5C18.373 5 13 10.373 13 17c0 10.5 12 18 12 18s12-7.5 12-18c0-6.627-5.373-12-12-12z" fill="#1ABC9C" stroke="#16A085" stroke-width="2"/>
+              <path d="M22 11h6c3 0 5 2 5 5v3c0 2-2 4-5 4h-6c-3 0-5-2-5-4v-3c0-3 2-5 5-5zm1 2v2h4v-2h-4zm-2 4c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1z" fill="white"/>
+            </svg>`
+          },
+          supermarkets: {
+            color: '#15803D',
+            fillColor: '#22C55E',
+            svg: `<svg width="50" height="60" viewBox="0 0 50 60" fill="none">
+              <path d="M25 5C18.373 5 13 10.373 13 17c0 10.5 12 18 12 18s12-7.5 12-18c0-6.627-5.373-12-12-12z" fill="#22C55E" stroke="#15803D" stroke-width="2"/>
+              <path d="M20 14h10l1 10h-12l1-10zm2-2c0-1.7 1.3-3 3-3s3 1.3 3 3h-2c0-.6-.4-1-1-1s-1 .4-1 1h-2z" fill="white"/>
+            </svg>`
+          },
+          restaurants: {
+            color: '#8E44AD',
+            fillColor: '#9B59B6',
+            svg: `<svg width="50" height="60" viewBox="0 0 50 60" fill="none">
+              <path d="M25 5C18.373 5 13 10.373 13 17c0 10.5 12 18 12 18s12-7.5 12-18c0-6.627-5.373-12-12-12z" fill="#9B59B6" stroke="#8E44AD" stroke-width="2"/>
+              <path d="M20 12h8v7c0 1.7-1.3 3-3 3h-2c-1.7 0-3-1.3-3-3v-7zm8 2h2c1 0 2 1 2 2s-1 2-2 2h-2v-4zm-9 10h12v1h-12v-1z" fill="white"/>
+            </svg>`
+          }
+        };
+      }
+      
+      initPOISystem() {
+        // POI categories with subcategories (Luna-style - exact match)
+        this.poiCategories = {
+          // Schools category
+          'kindergartens': {
+            name: 'Kindergartens',
+            icon: '🎒',
+            color: '#1f8efa',
+            parent: 'schools'
+          },
+          'schools-other': {
+            name: 'Schools & Universities',
+            icon: '🏫',
+            color: '#f39c12',
+            parent: 'schools'
+          },
+          
+          // Medical category
+          'hospitals': {
+            name: 'Hospitals & Medical Centers',
+            icon: '🏥',
+            color: '#e53935',
+            parent: 'medical'
+          },
+          'pharmacies': {
+            name: 'Pharmacies & Drugstores',
+            icon: '💊',
+            color: '#2ecc71',
+            parent: 'medical'
+          },
+          
+          // Supermarkets category (no subcategories - matches Luna)
+          'supermarkets': {
+            name: 'Supermarkets',
+            icon: '🛒',
+            color: '#27ae60',
+            parent: 'supermarkets'
+          },
+          
+          // Banks category (matching Luna key names)
+          'bank-branches': {
+            name: 'Bank Branches',
+            icon: '$',
+            color: '#8e44ad',
+            parent: 'banks'
+          },
+          'atms': {
+            name: 'ATMs & Currency Exchange',
+            icon: '💳',
+            color: '#f1c40f',
+            parent: 'banks'
+          },
+          
+          // Restaurants category (no subcategories - matches Luna)
+          'restaurants': {
+            name: 'Restaurants & Cafes',
+            icon: '🍽️',
+            color: '#e67e22',
+            parent: 'restaurants'
+          }
+        };
+        
+        // POI layers for each category
+        this.poiLayers = {};
+        this.activePOICategory = null; // Track active category
+        
+        // Luna-style spacing grid to prevent pin overlap
+        this.spacingGrid = new Map();
+        this.GRID_SIZE = 0.0002; // ~20 meters at zoom level 16
+        
+        // Initialize POI button listeners
+        this.initPOIListeners();
+      }
+      
+      // Luna-style spacing offset function
+      applySpacingOffset(lat, lng, poiType) {
+        const gridX = Math.floor(lng / this.GRID_SIZE);
+        const gridY = Math.floor(lat / this.GRID_SIZE);
+        const gridKey = `${gridX},${gridY}`;
+        
+        if (!this.spacingGrid.has(gridKey)) {
+          this.spacingGrid.set(gridKey, []);
+        }
+        
+        const existingPins = this.spacingGrid.get(gridKey);
+        const offset = existingPins.length;
+        
+        // Apply small offset in a spiral pattern
+        const angle = (offset * 60) * (Math.PI / 180); // 60 degrees apart
+        const distance = (offset + 1) * 0.00005; // ~5 meters per step
+        
+        const offsetLat = lat + (distance * Math.cos(angle));
+        const offsetLng = lng + (distance * Math.sin(angle));
+        
+        existingPins.push({ lat: offsetLat, lng: offsetLng, type: poiType });
+        
+        return { lat: offsetLat, lng: offsetLng };
+      }
+      
+      initPOIListeners() {
+        // Remove existing POI listener to prevent duplicates
+        if (this.poiListenerHandler) {
+          document.removeEventListener('click', this.poiListenerHandler);
+        }
+        
+        // POI button listeners (Luna-style) - store handler for removal
+        this.poiListenerHandler = (e) => {
+          if (e.target.closest('.poi-btn')) {
+            const button = e.target.closest('.poi-btn');
+            const parent = button.dataset.parent;
+            
+            // If clicking the same active category, deactivate it
+            if (this.activePOICategory === parent) {
+              this.deactivateAllPOIs();
+              this.activePOICategory = null;
+              return;
+            }
+            
+            // Deactivate all POI categories first
+            this.deactivateAllPOIs();
+            
+            // Set new active category
+            this.activePOICategory = parent;
+            
+            // Find all POI types for this parent category
+            const poiTypes = Object.entries(this.poiCategories)
+              .filter(([key, config]) => config.parent === parent)
+              .map(([key]) => key);
+            
+            // Activate the clicked POI type
+            this.activatePoiType(parent, button);
+          }
+        };
+        
+        document.addEventListener('click', this.poiListenerHandler);
+      }
+      
+      activatePoiType(poiType, button) {
+        // Check if this category is already active to prevent blinking
+        if (this.activePOICategory === poiType && button.classList.contains('active')) {
+          return; // Already active, no need to re-activate
+        }
+        
+        button.classList.add('active');
+        
+        // Find all POI types for this parent category
+        const poiTypeKeys = Object.entries(this.poiCategories)
+          .filter(([key, config]) => config.parent === poiType)
+          .map(([key]) => key);
+        
+        // Check if POI data already exists
+        const hasExistingData = poiTypeKeys.some(key => this.poiLayers[key]);
+        
+        if (!hasExistingData) {
+          // Only show loading state if we need to fetch new data
+          const originalText = button.innerHTML;
+          button.innerHTML = 'Loading...';
+          
+          // Load POIs for this category
+          this.loadPOIs(poiType).then(() => {
+            // Restore button text only if still active
+            if (this.activePOICategory === poiType) {
+              button.innerHTML = originalText;
+            }
+          }).catch(error => {
+            console.error('Error loading POIs:', error);
+            button.innerHTML = 'Error';
+            setTimeout(() => {
+              button.classList.remove('active');
+              button.innerHTML = originalText;
+            }, 1500);
+          });
+        } else {
+          // Show existing POI layers with safety checks
+          poiTypeKeys.forEach(key => {
+            if (this.poiLayers[key] && this.leafletMap) {
+              try {
+                if (!this.leafletMap.hasLayer(this.poiLayers[key])) {
+                  this.leafletMap.addLayer(this.poiLayers[key]);
+                }
+              } catch (error) {
+                console.warn('Failed to add POI layer:', key, error);
+              }
+            }
+          });
+        }
+      }
+      
+      deactivateAllPOIs() {
+        // Remove active state from all POI buttons
+        document.querySelectorAll('.poi-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        
+        // Remove all POI layers from map with safety checks
+        Object.keys(this.poiLayers).forEach(layerKey => {
+          if (this.poiLayers[layerKey] && this.leafletMap) {
+            try {
+              if (this.leafletMap.hasLayer(this.poiLayers[layerKey])) {
+                this.leafletMap.removeLayer(this.poiLayers[layerKey]);
+              }
+            } catch (error) {
+              console.warn('Failed to remove POI layer:', layerKey, error);
+            }
+          }
+        });
+      }
+      
+      async loadPOIs(poiType) {
+        if (!window.preGeneratedPOIData) {
+          console.warn('No POI data available');
+          return;
+        }
+        
+        console.log('Loading POIs for category:', poiType);
+        
+        // Find all POI types for this parent category
+        const poiTypes = Object.entries(this.poiCategories)
+          .filter(([key, config]) => config.parent === poiType)
+          .map(([key]) => key);
+        
+        console.log('POI types for category', poiType, ':', poiTypes);
+        
+        // Load all POI types for this category
+        for (const singlePoiType of poiTypes) {
+          // Get POI data for this category from pre-generated data
+          const categoryData = window.preGeneratedPOIData[singlePoiType] || [];
+          
+          console.log('Found POIs for', singlePoiType, ':', categoryData.length);
+          
+          if (categoryData.length === 0) continue;
+          
+          // Debug: Show first POI data structure
+          if (categoryData.length > 0) {
+            console.log('Sample POI data for', singlePoiType, ':', categoryData[0]);
+          }
+          
+          // Create layer for this POI type
+          this.poiLayers[singlePoiType] = L.layerGroup();
+          
+          // Add markers to layer
+          categoryData.forEach(poi => {
+            const marker = this.createPOIMarker(poi, singlePoiType);
+            if (marker) {
+              this.poiLayers[singlePoiType].addLayer(marker);
+            }
+          });
+          
+          // Add layer to map
+          this.leafletMap.addLayer(this.poiLayers[singlePoiType]);
+        }
+        
+        console.log('POI layers created:', Object.keys(this.poiLayers));
+      }
+      
+      // Luna-style POI marker creation function
+      createPOIMarker(poi, poiType) {
+        const lat = poi.lat || (poi.center?.lat);
+        const lng = poi.lng || (poi.center?.lon) || (poi.center?.lng);
+        
+        if (!lat || !lng) return null;
+        
+        const name = poi.name || poi.tags?.name || 'Unnamed';
+        const category = poi.category || poi.tags?.amenity || poi.tags?.shop || 'other';
+        const operator = poi.operator || poi.tags?.operator || '';
+        const opening_hours = poi.opening_hours || poi.tags?.opening_hours || '';
+        const phone = poi.phone || poi.tags?.phone || '';
+        const website = poi.website || poi.tags?.website || '';
+        
+        // Get marker style for this POI type (Luna-style)
+        const baseType = this.poiCategories[poiType]?.parent || poiType;
+        console.log('POI type:', poiType, 'Base type:', baseType);
+        const markerStyle = this.poiMarkers[baseType] || this.poiMarkers.schools;
+        console.log('Marker style for', baseType, ':', markerStyle ? 'found' : 'NOT FOUND, using schools fallback');
+        
+        // Apply spacing offset to prevent overlap
+        const adjustedPosition = this.applySpacingOffset(lat, lng, poiType);
+        
+        // Create professional pin marker (Luna-style)
+        const pinMarker = L.marker([adjustedPosition.lat, adjustedPosition.lng], {
+          icon: L.divIcon({
+            className: 'poi-pin-marker',
+            html: `<div role="img" aria-label="${name} - ${this.poiCategories[poiType]?.name || category}">${markerStyle.svg}</div>`,
+            iconSize: [50, 60],
+            iconAnchor: [25, 55],
+            popupAnchor: [0, -55]
+          }),
+          alt: `${name} - ${this.poiCategories[poiType]?.name || category}`,
+          title: name
+        });
+        
+        // Calculate distance from property
+        const distance = Math.round(
+          this.leafletMap.distance([this.mapData.lat, this.mapData.lng], [lat, lng])
+        );
+
+        // Build rich popup content (Luna-style)
+        let popupContent = `<div class="poi-popup">
+          <strong>${name}</strong><br>
+          <em>${this.poiCategories[poiType]?.name || category}</em><br>
+          <small>📍 ${distance}m away</small>`;
+
+        if (operator) {
+          popupContent += `<br><small>🏢 ${operator}</small>`;
+        }
+        if (opening_hours) {
+          popupContent += `<br><small>🕐 ${opening_hours}</small>`;
+        }
+        if (phone) {
+          popupContent += `<br><small>📞 <a href="tel:${phone}">${phone}</a></small>`;
+        }
+        if (website) {
+          const displayUrl = website.replace(/^https?:\/\//, '').substring(0, 30);
+          popupContent += `<br><small>🌐 <a href="${website}" target="_blank">${displayUrl}</a></small>`;
+        }
+        popupContent += '</div>';
+
+        // Bind popup once during creation (not on each click)
+        pinMarker.bindPopup(popupContent);
+        
+        // Store accessibility data for batch processing
+        pinMarker._accessibilityData = {
+          ariaLabel: `${name} - ${this.poiCategories[poiType]?.name || category} - ${distance}m away`,
+          title: name
+        };
+        
+        return pinMarker;
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      const gallery = new ThunderGallery();
+    });
+  </script>
+</body>
+</html>

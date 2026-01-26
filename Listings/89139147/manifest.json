@@ -1,0 +1,194 @@
+{
+  "name": "Apartament cu 3 camere,  Botanica,  Chișinău,  Chișinău mun.",
+  "short_name": "Property 891",
+  "description": "Achiziția acestui imobil reprezintă o investiție sigură și de durată!\n\nVă propunem spre vânzare acest apartament cu 3 camere în sect. Botanica, bd. Cuza Vodă. Suprafața totală de 113 mp.\nCompartimentat în: 3 camere, bucătărie, 3 blocuri sanitare, balcon, antreu.\n- geamuri termopan\n- euroreparație\n- încălzire autonomă\n- intrare separata\nÎn imediată apropiere de: parc, grădiniță, școală, cafenele. Acces facil la transportul public în orice direcție a orașului. (d.r.)\n\nLa procurarea prin IPOTECĂ ai 0% comision!\n\nATENȚIE! Acum poți achita comod prin programul guvernamental Prima Casă cu doar 10% prima rată!\n\nSCHIMB de apartamente! Cu ajutorului programului Trade-In, Compania Proimobil.md vă ajută să achiziționați acest apartament în schimbul unui alt imobil.\n\nTe simți pregătit să ai un loc doar al tău? Nu rata șansa. Echipa noastră îți este alături pentru a te ajuta să alegi corect și eficient. Programează acum o prezentare, și descoperă facilitățile viitoarei tale locuințe!\n\nFacebook -\nInstagram -\nTelegram -\nCitește mai mult - 149 900 € in Chișinău, Bulevardul Cuza-Vodă 7/1",
+  "start_url": "/89139147/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#3b82f6",
+  "background_color": "#f8fafc",
+  "icons": [
+    {
+      "src": "images/image_0.webp",
+      "sizes": "48x48",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "72x72",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "96x96",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "128x128",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "144x144",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "152x152",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "167x167",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "180x180",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "384x384",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "384x384",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "business",
+    "lifestyle",
+    "utilities"
+  ],
+  "lang": "ro",
+  "dir": "ltr",
+  "scope": "/89139147/",
+  "id": "realagent-89139147",
+  "prefer_related_applications": false,
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "realagent": {
+    "listing_id": "89139147",
+    "property_type": "apartment",
+    "price": "149 900 €",
+    "location": "Chișinău, Bulevardul Cuza-Vodă 7/1",
+    "generated_at": "",
+    "version": "1.0.0"
+  },
+  "shortcuts": [
+    {
+      "name": "View Photos",
+      "short_name": "Photos",
+      "description": "View property photos",
+      "url": "/89139147/#gallery",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Map",
+      "short_name": "Map",
+      "description": "View property location",
+      "url": "/89139147/#map",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Contact Agent",
+      "short_name": "Contact",
+      "description": "Contact property agent",
+      "url": "/89139147/#contact",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "images/image_0.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 1"
+    },
+    {
+      "src": "images/image_1.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 2"
+    },
+    {
+      "src": "images/image_2.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 3"
+    },
+    {
+      "src": "images/image_3.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 4"
+    },
+    {
+      "src": "images/image_4.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 5"
+    }
+  ]
+}
