@@ -215,6 +215,14 @@
                     <button class="lang-btn" onclick="switchLanguage('ru')" data-lang="ru">RU</button>
                 </div>
                 <span class="refresh-info" id="lastUpdate">Actualizat acum</span>
+                <div class="user-info">
+                    <span class="user-name" id="user-name">{{ session.user.username if session.user else 'User' }}</span>
+                    <button class="logout-btn" onclick="logout()" title="Logout">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
@@ -1772,7 +1780,8 @@
                 'qr-error': 'Eroare la generarea codului QR',
                 'qr-retry': 'Reîncearcă',
                 'overlay-sold': 'VÂNDUT',
-                'overlay-rented': 'ÎNCHIRIAT'
+                'overlay-rented': 'ÎNCHIRIAT',
+                'view-map-title': 'Locație'
             },
             'ru': {
                 'nav-listings': 'Объекты', 'nav-statistics': 'Статистика', 'nav-log': 'Журнал',
@@ -2030,7 +2039,8 @@
                 'qr-error': 'Ошибка при генерации QR-кода',
                 'qr-retry': 'Повторить',
                 'overlay-sold': 'ПРОДАНО',
-                'overlay-rented': 'СДАНО'
+                'overlay-rented': 'СДАНО',
+                'view-map-title': 'Местоположение'
             }
         };
         
@@ -6660,6 +6670,7 @@
                         </div>
                         <div class="card-address">${listing.address || ''}</div>
                         <div class="card-id">ID: ${listing.id}</div>
+                        ${listing.created_by ? `<div class="card-owner" style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">👤 ${listing.created_by}</div>` : ''}
                     </div>
                     <div class="card-actions">
                         <button class="edit-listing-btn" onclick="editListing('${listing.id}')" title="Edit">
@@ -8660,6 +8671,28 @@
                 body.classList.add('day-theme');
                 themeIcon.textContent = '☀';
                 localStorage.setItem('theme', 'day');
+            }
+        }
+        
+        async function logout() {
+            if (!confirm('Are you sure you want to logout?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/login';
+                } else {
+                    alert('Logout failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('Logout failed. Please try again.');
             }
         }
         

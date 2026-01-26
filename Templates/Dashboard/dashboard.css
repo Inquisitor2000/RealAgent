@@ -315,6 +315,51 @@ html {
     color: white;
 }
 
+/* User Info Section */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 4px 4px 12px;
+    background: var(--bg-card-hover);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    height: 32px;
+}
+
+.user-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.logout-btn {
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    width: 24px;
+    height: 24px;
+}
+
+.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.logout-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
 .color-picker-dropdown {
     position: relative;
 }
@@ -546,6 +591,8 @@ z-index: 1;
     box-shadow: 0 4px 16px var(--shadow);
     min-width: 160px;
     justify-content: center;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .add-listing-btn:hover {
@@ -5317,6 +5364,10 @@ body.day-theme .leaflet-popup-tip {
     color: var(--text-primary);
 }
 
+.form-section-title[data-i18n="edit-amenities-title"] {
+    padding-top: 10px;
+}
+
 /* Checkbox Grid */
 .checkbox-grid {
     display: grid;
@@ -5569,6 +5620,11 @@ body.day-theme .leaflet-popup-tip {
 #view-map-section.view-map-full-width {
     margin-top: 16px;
     width: 100%;
+}
+
+#view-map-section .form-section-title {
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 
 .view-map-wrapper {

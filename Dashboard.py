@@ -17,16 +17,18 @@ Dependencies:
     - sqlite3 (included in Python standard library)
 """
 
-from flask import Flask, render_template, send_from_directory, abort, jsonify, request, Response
+from flask import Flask, render_template, send_from_directory, abort, jsonify, request, Response, session, redirect, url_for
 import sqlite3
 import json
 import os
+import secrets
 from pathlib import Path
 from datetime import datetime
 from collections import Counter
 import sys
 import io
 import base64
+from functools import wraps
 
 # QR Code imports
 import qrcode
@@ -41,7 +43,11 @@ from Helper.database import (
     delete_journal_entry,
     update_listing_fields,
     update_image_order,
-    get_listing_from_mainframe
+    get_listing_from_mainframe,
+    authenticate_user,
+    create_user,
+    change_password,
+    list_users
 )
 from Helper.db_metrics import timed_db_connection, db_metrics, with_db_metrics
 from regenerate_html import regenerate_listing_by_id
@@ -51,9 +57,36 @@ app = Flask(__name__,
             static_folder='Templates/Dashboard',
             static_url_path='')
 
+# Secret key for sessions (generate a random one)
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(32))
+
 # Disable caching for development
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+
+# Login required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            if request.is_json or request.path.startswith('/api/'):
+                return jsonify({'error': 'Authentication required', 'login_required': True}), 401
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+# Admin required decorator
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+        if session['user'].get('role') != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Add cache control headers to all responses
 @app.after_request
@@ -844,7 +877,322 @@ def get_all_listings():
         return []
 
 
+# ============================================================
+# AUTHENTICATION ROUTES
+# ============================================================
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login page and authentication."""
+    if request.method == 'GET':
+        # If already logged in, redirect to dashboard
+        if 'user' in session:
+            return redirect(url_for('index'))
+        
+        # Serve login page matching dashboard design
+        return '''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>RealAgent - Login</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Inter', sans-serif;
+                    background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 50%, #1f1f1f 100%);
+                    background-attachment: fixed;
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                    color: #d8dbe2;
+                }
+                .login-container {
+                    background: rgba(42, 42, 42, 0.95);
+                    border: 1px solid rgba(216, 219, 226, 0.12);
+                    border-radius: 20px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+                    padding: 40px;
+                    width: 100%;
+                    max-width: 420px;
+                    backdrop-filter: blur(10px);
+                }
+                .logo {
+                    text-align: center;
+                    margin-bottom: 35px;
+                }
+                .logo h1 {
+                    font-size: 32px;
+                    color: #d8dbe2;
+                    margin-bottom: 8px;
+                    font-weight: 600;
+                }
+                .logo p {
+                    color: rgba(216, 219, 226, 0.6);
+                    font-size: 15px;
+                }
+                .form-group {
+                    margin-bottom: 20px;
+                }
+                label {
+                    display: block;
+                    margin-bottom: 8px;
+                    color: #d8dbe2;
+                    font-weight: 500;
+                    font-size: 14px;
+                }
+                input {
+                    width: 100%;
+                    padding: 14px 16px;
+                    background: rgba(216, 219, 226, 0.06);
+                    border: 2px solid rgba(216, 219, 226, 0.12);
+                    border-radius: 12px;
+                    font-size: 16px;
+                    color: #d8dbe2;
+                    transition: all 0.2s ease;
+                }
+                input::placeholder {
+                    color: rgba(216, 219, 226, 0.4);
+                }
+                input:focus {
+                    outline: none;
+                    border-color: #499167;
+                    background: rgba(216, 219, 226, 0.1);
+                    box-shadow: 0 0 0 3px rgba(73, 145, 103, 0.1);
+                }
+                button {
+                    width: 100%;
+                    padding: 14px;
+                    background: #499167;
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    margin-top: 10px;
+                }
+                button:hover {
+                    background: #5aa878;
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(73, 145, 103, 0.3);
+                }
+                button:active {
+                    transform: translateY(0);
+                }
+                .error {
+                    background: rgba(239, 68, 68, 0.1);
+                    border: 1px solid rgba(239, 68, 68, 0.3);
+                    color: #fca5a5;
+                    padding: 12px;
+                    border-radius: 10px;
+                    margin-bottom: 20px;
+                    font-size: 14px;
+                    display: none;
+                }
+                .error.show {
+                    display: block;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="login-container">
+                <div class="logo">
+                    <h1>🏛️ RealAgent</h1>
+                    <p>Property Management Dashboard</p>
+                </div>
+                
+                <div class="error" id="error"></div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    </div>
+                    
+                    <button type="submit">Sign In</button>
+                </form>
+            </div>
+            
+            <script>
+                document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+                    const errorDiv = document.getElementById('error');
+                    
+                    try {
+                        const response = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username, password })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            window.location.href = '/';
+                        } else {
+                            errorDiv.textContent = data.error || 'Login failed';
+                            errorDiv.classList.add('show');
+                        }
+                    } catch (error) {
+                        errorDiv.textContent = 'Connection error. Please try again.';
+                        errorDiv.classList.add('show');
+                    }
+                });
+            </script>
+        </body>
+        </html>
+        '''
+    
+    # POST handled by API route
+    return redirect(url_for('api_login'))
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    """API endpoint for login."""
+    try:
+        data = request.get_json()
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        
+        if not username or not password:
+            return jsonify({'success': False, 'error': 'Username and password required'}), 400
+        
+        # Authenticate
+        result = authenticate_user(username, password)
+        
+        if result['success']:
+            # Store user in session
+            session['user'] = result['user']
+            session.permanent = True
+            
+            print(f"✅ User logged in: {username} ({result['user']['role']})")
+            
+            return jsonify({
+                'success': True,
+                'user': {
+                    'username': result['user']['username'],
+                    'full_name': result['user']['full_name'],
+                    'role': result['user']['role']
+                }
+            })
+        else:
+            print(f"❌ Failed login attempt: {username}")
+            return jsonify({'success': False, 'error': result['error']}), 401
+            
+    except Exception as e:
+        print(f"❌ Login error: {e}")
+        return jsonify({'success': False, 'error': 'Login system error'}), 500
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def api_logout():
+    """API endpoint for logout."""
+    username = session.get('user', {}).get('username', 'Unknown')
+    session.clear()
+    print(f"👋 User logged out: {username}")
+    return jsonify({'success': True})
+
+
+@app.route('/api/auth/me', methods=['GET'])
+@login_required
+def api_current_user():
+    """Get current logged-in user info."""
+    return jsonify({
+        'success': True,
+        'user': session['user']
+    })
+
+
+@app.route('/api/auth/change-password', methods=['POST'])
+@login_required
+def api_change_password():
+    """Change current user's password."""
+    try:
+        data = request.get_json()
+        old_password = data.get('old_password', '')
+        new_password = data.get('new_password', '')
+        
+        if not old_password or not new_password:
+            return jsonify({'success': False, 'error': 'Both passwords required'}), 400
+        
+        if len(new_password) < 6:
+            return jsonify({'success': False, 'error': 'Password must be at least 6 characters'}), 400
+        
+        username = session['user']['username']
+        result = change_password(username, old_password, new_password)
+        
+        if result['success']:
+            print(f"✅ Password changed for user: {username}")
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': result['error']}), 400
+            
+    except Exception as e:
+        print(f"❌ Password change error: {e}")
+        return jsonify({'success': False, 'error': 'Password change failed'}), 500
+
+
+@app.route('/api/users', methods=['GET'])
+@admin_required
+def api_list_users():
+    """List all users (admin only)."""
+    users = list_users()
+    return jsonify({'success': True, 'users': users})
+
+
+@app.route('/api/users', methods=['POST'])
+@admin_required
+def api_create_user():
+    """Create new user (admin only)."""
+    try:
+        data = request.get_json()
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        full_name = data.get('full_name', '').strip()
+        role = data.get('role', 'agent')
+        
+        if not username or not password:
+            return jsonify({'success': False, 'error': 'Username and password required'}), 400
+        
+        if len(password) < 6:
+            return jsonify({'success': False, 'error': 'Password must be at least 6 characters'}), 400
+        
+        if role not in ['admin', 'agent', 'viewer']:
+            return jsonify({'success': False, 'error': 'Invalid role'}), 400
+        
+        result = create_user(username, password, full_name, role)
+        
+        if result['success']:
+            print(f"✅ User created: {username} ({role})")
+            return jsonify({'success': True, 'user_id': result['user_id']})
+        else:
+            return jsonify({'success': False, 'error': result['error']}), 400
+            
+    except Exception as e:
+        print(f"❌ User creation error: {e}")
+        return jsonify({'success': False, 'error': 'User creation failed'}), 500
+
+
+# ============================================================
+# MAIN DASHBOARD ROUTES
+# ============================================================
+
 @app.route('/')
+@login_required
 def index():
     """Main dashboard page showing all listings in a grid."""
     listings = get_all_listings()
@@ -1336,17 +1684,39 @@ def api_listing_status(listing_id):
 
 
 @app.route('/api/listing/<listing_id>', methods=['PUT'])
+@login_required
 def api_update_listing(listing_id):
     """API endpoint to update listing fields."""
     try:
+        from Helper.database import can_edit_listing
+        
         data = request.get_json()
         updates = data.get('updates', {})
-        user = data.get('user', 'Dashboard')
+        user = session['user']['username']  # Get from session
         regenerate = data.get('regenerate', True)
         changed_fields = data.get('changed_fields', [])
         
+        # Check permissions
+        permission = can_edit_listing(listing_id, user)
+        
+        if not permission['can_edit']:
+            print(f"\n{'='*60}")
+            print(f"🚫 PERMISSION DENIED: Listing {listing_id}")
+            print(f"   User: {permission['user']}")
+            print(f"   Owner: {permission['owner']}")
+            print(f"   Reason: {permission['reason']}")
+            print(f"{'='*60}\n")
+            
+            return jsonify({
+                'success': False,
+                'error': permission['reason'],
+                'owner': permission['owner'],
+                'permission_denied': True
+            }), 403
+        
         print(f"\n{'='*60}")
         print(f"📝 UPDATE: Listing {listing_id}")
+        print(f"   User: {user} (Owner: {permission['owner']})")
         print(f"{'='*60}")
         
         # Get original data for comparison

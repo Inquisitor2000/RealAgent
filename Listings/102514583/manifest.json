@@ -1,0 +1,194 @@
+{
+  "name": "Apartament cu 3 camere,  Ciocana,  Chișinău,  Chișinău mun.",
+  "short_name": "Property 102",
+  "description": "Biroul de Imobiliare REVOLUTION ESTATE oferă servicii complete de intermediere imobiliară: vânzare, cumpărare și închiriere de proprietăți rezidențiale și comerciale. Oferim evaluări corecte, promovare eficientă și consultanță pe tot parcursul procesului. Ne asigurăm că fiecare tranzacție este sigură, legală și bine documentată. - 179 900 € in Chișinău, Bulevardul Mircea cel Bătrân 23",
+  "start_url": "/102514583/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#3b82f6",
+  "background_color": "#f8fafc",
+  "icons": [
+    {
+      "src": "images/image_0.webp",
+      "sizes": "48x48",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "72x72",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "96x96",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "128x128",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "144x144",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "152x152",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "167x167",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "180x180",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "384x384",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "384x384",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "images/image_0.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "business",
+    "lifestyle",
+    "utilities"
+  ],
+  "lang": "ro",
+  "dir": "ltr",
+  "scope": "/102514583/",
+  "id": "realagent-102514583",
+  "prefer_related_applications": false,
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "realagent": {
+    "listing_id": "102514583",
+    "property_type": "apartment",
+    "price": "179 900 €",
+    "location": "Chișinău, Bulevardul Mircea cel Bătrân 23",
+    "generated_at": "",
+    "version": "1.0.0"
+  },
+  "shortcuts": [
+    {
+      "name": "View Photos",
+      "short_name": "Photos",
+      "description": "View property photos",
+      "url": "/102514583/#gallery",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Map",
+      "short_name": "Map",
+      "description": "View property location",
+      "url": "/102514583/#map",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Contact Agent",
+      "short_name": "Contact",
+      "description": "Contact property agent",
+      "url": "/102514583/#contact",
+      "icons": [
+        {
+          "src": "/pwa/assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "images/image_0.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 1"
+    },
+    {
+      "src": "images/image_1.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 2"
+    },
+    {
+      "src": "images/image_2.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 3"
+    },
+    {
+      "src": "images/image_3.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 4"
+    },
+    {
+      "src": "images/image_4.webp",
+      "sizes": "1200x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Property view 5"
+    }
+  ]
+}

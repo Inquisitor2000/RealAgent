@@ -6,6 +6,7 @@ Centralized database management for all listings.
 import sqlite3
 import json
 import os
+import socket
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Dict, List, Any
@@ -13,6 +14,241 @@ from typing import Optional, Dict, List, Any
 
 # Default Mainframe.db location
 MAINFRAME_DB_PATH = Path(__file__).parent.parent / "Mainframe.db"
+
+
+def get_current_user() -> str:
+    """
+    Get the current user/agent name.
+    Priority: Environment variable > Hostname
+    
+    Returns:
+        Username string (defaults to 'admin' if not set)
+    """
+    # Check environment variable first
+    user = os.getenv('REALAGENT_USER') or os.getenv('AGENT_NAME')
+    
+    if not user:
+        # Fallback to hostname
+        try:
+            user = socket.gethostname().split('.')[0]  # Get first part of hostname
+        except:
+            user = 'admin'
+    
+    return user or 'admin'
+
+
+def authenticate_user(username: str, password: str, db_path: Optional[Path] = None) -> Dict[str, Any]:
+    """
+    Authenticate a user with username and password.
+    
+    Args:
+        username: Username to authenticate
+        password: Plain text password
+        db_path: Optional custom database path
+        
+    Returns:
+        Dictionary with 'success' (bool), 'user' (dict), 'error' (str)
+    """
+    import hashlib
+    
+    try:
+        conn = init_mainframe_db(db_path)
+        c = conn.cursor()
+        
+        # Hash the password
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        
+        # Check credentials
+        c.execute('''
+            SELECT id, username, full_name, role, active, last_login
+            FROM users
+            WHERE username = ? AND password_hash = ?
+        ''', (username, password_hash))
+        
+        row = c.fetchone()
+        
+        if not row:
+            conn.close()
+            return {
+                'success': False,
+                'error': 'Invalid username or password',
+                'user': None
+            }
+        
+        user_data = dict(row)
+        
+        # Check if user is active
+        if not user_data['active']:
+            conn.close()
+            return {
+                'success': False,
+                'error': 'Account is disabled',
+                'user': None
+            }
+        
+        # Update last login time
+        c.execute('''
+            UPDATE users
+            SET last_login = ?
+            WHERE id = ?
+        ''', (datetime.now(timezone.utc).isoformat(), user_data['id']))
+        
+        conn.commit()
+        conn.close()
+        
+        return {
+            'success': True,
+            'user': user_data,
+            'error': None
+        }
+        
+    except Exception as e:
+        print(f"❌ Authentication error: {e}")
+        return {
+            'success': False,
+            'error': 'Authentication system error',
+            'user': None
+        }
+
+
+def create_user(username: str, password: str, full_name: str = '', role: str = 'agent', db_path: Optional[Path] = None) -> Dict[str, Any]:
+    """
+    Create a new user account.
+    
+    Args:
+        username: Unique username
+        password: Plain text password (will be hashed)
+        full_name: User's full name
+        role: User role (admin, agent, viewer)
+        db_path: Optional custom database path
+        
+    Returns:
+        Dictionary with 'success' (bool), 'user_id' (int), 'error' (str)
+    """
+    import hashlib
+    
+    try:
+        conn = init_mainframe_db(db_path)
+        c = conn.cursor()
+        
+        # Hash the password
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        
+        # Insert user
+        c.execute('''
+            INSERT INTO users (username, password_hash, full_name, role)
+            VALUES (?, ?, ?, ?)
+        ''', (username, password_hash, full_name, role))
+        
+        user_id = c.lastrowid
+        
+        conn.commit()
+        conn.close()
+        
+        return {
+            'success': True,
+            'user_id': user_id,
+            'error': None
+        }
+        
+    except sqlite3.IntegrityError:
+        return {
+            'success': False,
+            'user_id': None,
+            'error': 'Username already exists'
+        }
+    except Exception as e:
+        print(f"❌ Error creating user: {e}")
+        return {
+            'success': False,
+            'user_id': None,
+            'error': str(e)
+        }
+
+
+def change_password(username: str, old_password: str, new_password: str, db_path: Optional[Path] = None) -> Dict[str, Any]:
+    """
+    Change user password.
+    
+    Args:
+        username: Username
+        old_password: Current password
+        new_password: New password
+        db_path: Optional custom database path
+        
+    Returns:
+        Dictionary with 'success' (bool), 'error' (str)
+    """
+    import hashlib
+    
+    try:
+        # First authenticate with old password
+        auth = authenticate_user(username, old_password, db_path)
+        
+        if not auth['success']:
+            return {
+                'success': False,
+                'error': 'Current password is incorrect'
+            }
+        
+        conn = init_mainframe_db(db_path)
+        c = conn.cursor()
+        
+        # Hash new password
+        new_password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+        
+        # Update password
+        c.execute('''
+            UPDATE users
+            SET password_hash = ?
+            WHERE username = ?
+        ''', (new_password_hash, username))
+        
+        conn.commit()
+        conn.close()
+        
+        return {
+            'success': True,
+            'error': None
+        }
+        
+    except Exception as e:
+        print(f"❌ Error changing password: {e}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+
+def list_users(db_path: Optional[Path] = None) -> List[Dict[str, Any]]:
+    """
+    List all users (without password hashes).
+    
+    Args:
+        db_path: Optional custom database path
+        
+    Returns:
+        List of user dictionaries
+    """
+    try:
+        conn = init_mainframe_db(db_path)
+        c = conn.cursor()
+        
+        c.execute('''
+            SELECT id, username, full_name, role, active, created_at, last_login
+            FROM users
+            ORDER BY username
+        ''')
+        
+        users = [dict(row) for row in c.fetchall()]
+        
+        conn.close()
+        
+        return users
+        
+    except Exception as e:
+        print(f"❌ Error listing users: {e}")
+        return []
 
 
 def init_mainframe_db(db_path: Optional[Path] = None) -> sqlite3.Connection:
@@ -76,6 +312,22 @@ def init_mainframe_db(db_path: Optional[Path] = None) -> sqlite3.Connection:
     except sqlite3.OperationalError:
         # Column doesn't exist, add it
         c.execute('ALTER TABLE listings ADD COLUMN user_corrected_address INTEGER DEFAULT 0')
+        conn.commit()
+    
+    # Migration: Add created_by column if it doesn't exist (ownership)
+    try:
+        c.execute('SELECT created_by FROM listings LIMIT 1')
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        c.execute('ALTER TABLE listings ADD COLUMN created_by TEXT DEFAULT "admin"')
+        conn.commit()
+    
+    # Migration: Add updated_by column if it doesn't exist (track last editor)
+    try:
+        c.execute('SELECT updated_by FROM listings LIMIT 1')
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        c.execute('ALTER TABLE listings ADD COLUMN updated_by TEXT DEFAULT "admin"')
         conn.commit()
     
     # Migration: Add sold column if it doesn't exist
@@ -213,6 +465,39 @@ def init_mainframe_db(db_path: Optional[Path] = None) -> sqlite3.Connection:
     c.execute('CREATE INDEX IF NOT EXISTS idx_journal_created ON journal_entries(created_at DESC)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_geocode_cache_created ON geocode_cache(created_at DESC)')
     
+    # Users table for authentication
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            full_name TEXT,
+            role TEXT DEFAULT 'agent' CHECK(role IN ('admin', 'agent', 'viewer')),
+            active INTEGER DEFAULT 1,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            last_login TEXT
+        )
+    ''')
+    
+    # Create default admin user if no users exist (password: admin123)
+    c.execute('SELECT COUNT(*) FROM users')
+    user_count = c.fetchone()[0]
+    
+    if user_count == 0:
+        import hashlib
+        # Default password: admin123
+        default_password = hashlib.sha256('admin123'.encode()).hexdigest()
+        c.execute('''
+            INSERT INTO users (username, password_hash, full_name, role)
+            VALUES (?, ?, ?, ?)
+        ''', ('admin', default_password, 'Administrator', 'admin'))
+        conn.commit()
+        print("✅ Default admin user created (username: admin, password: admin123)")
+        print("⚠️  Please change the password after first login!")
+    
+    c.execute('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_users_active ON users(active)')
+    
     conn.commit()
     return conn
 
@@ -307,13 +592,29 @@ def save_listing_to_mainframe(listing_data: Dict[str, Any], db_path: Optional[Pa
                 print(f"⚠️ URL already exists for listing {existing[0]}, updating existing record")
                 listing_id = existing[0]
         
+        # Get current user for ownership tracking
+        current_user = listing_data.get('created_by') or get_current_user()
+        
+        # Check if listing already exists to preserve original creator
+        c.execute('SELECT created_by FROM listings WHERE id = ?', (listing_id,))
+        existing = c.fetchone()
+        
+        if existing and existing[0]:
+            # Preserve original creator, update editor
+            created_by = existing[0]
+            updated_by = current_user
+        else:
+            # New listing - set both to current user
+            created_by = current_user
+            updated_by = current_user
+        
         c.execute('''
             INSERT OR REPLACE INTO listings (
                 id, url, domain, title_ro, title_ru, description_ro, description_ru,
                 price_json, address, display_address, geocoding_address, contact,
                 created_at, updated_at, folder_path, template_name, status, user_corrected_address,
-                listing_type, property_type
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                listing_type, property_type, created_by, updated_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             listing_id,
             listing_data.get('url', ''),
@@ -334,7 +635,9 @@ def save_listing_to_mainframe(listing_data: Dict[str, Any], db_path: Optional[Pa
             listing_data.get('status', 'active'),
             1 if listing_data.get('user_corrected_address', False) else 0,
             listing_data.get('listing_type', 'for_sale'),  # Default to 'for_sale'
-            listing_data.get('property_type', 'apartment')  # Default to 'apartment'
+            listing_data.get('property_type', 'apartment'),  # Default to 'apartment'
+            created_by,
+            updated_by
         ))
         
         # Delete existing related data (for clean update)
@@ -441,6 +744,75 @@ def get_listing_amenities_features(listing_id: str, display_lang: str = 'ro', db
         'amenities': get_amenities_for_display(english_amenities, display_lang),
         'features': get_features_for_display(english_features, display_lang)
     }
+
+
+def can_edit_listing(listing_id: str, user: Optional[str] = None, db_path: Optional[Path] = None) -> Dict[str, Any]:
+    """
+    Check if a user has permission to edit a listing.
+    
+    Args:
+        listing_id: Listing ID to check
+        user: Username to check (defaults to current user)
+        db_path: Optional custom database path
+        
+    Returns:
+        Dictionary with 'can_edit' (bool), 'reason' (str), 'owner' (str)
+    """
+    if user is None:
+        user = get_current_user()
+    
+    # Admin can edit everything
+    if user.lower() == 'admin':
+        return {
+            'can_edit': True,
+            'reason': 'Admin has full access',
+            'owner': 'admin',
+            'user': user
+        }
+    
+    try:
+        conn = init_mainframe_db(db_path)
+        c = conn.cursor()
+        
+        c.execute('SELECT created_by FROM listings WHERE id = ?', (listing_id,))
+        row = c.fetchone()
+        conn.close()
+        
+        if not row:
+            return {
+                'can_edit': False,
+                'reason': 'Listing not found',
+                'owner': None,
+                'user': user
+            }
+        
+        owner = row[0] or 'admin'
+        
+        # User can edit their own listings
+        if owner.lower() == user.lower():
+            return {
+                'can_edit': True,
+                'reason': 'You own this listing',
+                'owner': owner,
+                'user': user
+            }
+        
+        return {
+            'can_edit': False,
+            'reason': f'This listing belongs to {owner}',
+            'owner': owner,
+            'user': user
+        }
+        
+    except Exception as e:
+        print(f"❌ Error checking permissions: {e}")
+        # Fail open - allow edit if check fails
+        return {
+            'can_edit': True,
+            'reason': 'Permission check failed - allowing edit',
+            'owner': 'unknown',
+            'user': user
+        }
 
 
 def get_listing_from_mainframe(listing_id: str, db_path: Optional[Path] = None) -> Optional[Dict[str, Any]]:
