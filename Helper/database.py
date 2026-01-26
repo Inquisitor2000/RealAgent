@@ -191,6 +191,17 @@ def init_mainframe_db(db_path: Optional[Path] = None) -> sqlite3.Connection:
         )
     ''')
     
+    # Geocode cache table - stores geocoding results to avoid redundant API calls
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS geocode_cache (
+            key TEXT PRIMARY KEY,
+            lat REAL NOT NULL,
+            lng REAL NOT NULL,
+            title TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     # Create indices for better performance
     c.execute('CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_listings_created ON listings(created_at)')
@@ -200,6 +211,7 @@ def init_mainframe_db(db_path: Optional[Path] = None) -> sqlite3.Connection:
     c.execute('CREATE INDEX IF NOT EXISTS idx_pois_listing ON listing_pois(listing_id, category)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_journal_listing ON journal_entries(listing_id)')
     c.execute('CREATE INDEX IF NOT EXISTS idx_journal_created ON journal_entries(created_at DESC)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_geocode_cache_created ON geocode_cache(created_at DESC)')
     
     conn.commit()
     return conn

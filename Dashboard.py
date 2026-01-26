@@ -80,8 +80,27 @@ LISTINGS_DIR = Path(__file__).parent / "Listings"
 def generate_qr_code(listing_data, format='svg'):
     """Generate QR code in requested format (svg or png)"""
     
-    # Create listing URL - you can customize this URL structure
-    listing_url = f"https://yourdomain.com/listing/{listing_data['id']}"
+    # Get local network IP for smartphone access
+    import socket
+    try:
+        # Get local IP address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        # Fallback to localhost if can't determine IP
+        local_ip = "localhost"
+    
+    # Get the actual port from Flask request context or use default
+    try:
+        from flask import request
+        port = request.host.split(':')[1] if ':' in request.host else '5000'
+    except:
+        port = '5000'
+    
+    # Create listing URL for local network access
+    listing_url = f"http://{local_ip}:{port}/listings/{listing_data['id']}/index.html"
     
     if format == 'svg':
         try:
@@ -1390,15 +1409,23 @@ def api_update_listing(listing_id):
         
         if result['success'] and regenerate:
             # Regenerate HTML
+            print(f"🔄 Regenerating HTML for listing {listing_id}...")
             try:
                 regen_success = regenerate_listing_by_id(
                     listing_id,
                     refetch_pois=False  # Don't refetch POIs unless address changed
                 )
                 result['html_regenerated'] = regen_success
+                if regen_success:
+                    print(f"✅ HTML regenerated successfully")
+                else:
+                    print(f"⚠️  HTML regeneration returned False")
             except Exception as e:
                 result['html_regenerated'] = False
                 result['regeneration_error'] = str(e)
+                print(f"❌ HTML regeneration failed: {e}")
+        elif not regenerate:
+            print(f"⏭️  Skipping HTML regeneration (regenerate=False)")
         
         return jsonify(result)
     except Exception as e:
@@ -1514,12 +1541,18 @@ def api_reorder_listing_images(listing_id):
         
         if result['success']:
             # Regenerate HTML to reflect new image order
+            print(f"🔄 Regenerating HTML after image reorder for listing {listing_id}...")
             try:
                 regen_success = regenerate_listing_by_id(listing_id, refetch_pois=False)
                 result['html_regenerated'] = regen_success
+                if regen_success:
+                    print(f"✅ HTML regenerated successfully")
+                else:
+                    print(f"⚠️  HTML regeneration returned False")
             except Exception as e:
                 result['html_regenerated'] = False
                 result['regeneration_error'] = str(e)
+                print(f"❌ HTML regeneration failed: {e}")
         
         return jsonify(result)
     except Exception as e:
@@ -2893,13 +2926,25 @@ if __name__ == '__main__':
         print("Creating Listings directory...")
         LISTINGS_DIR.mkdir(exist_ok=True)
     
+    # Get local network IP for smartphone access
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        local_ip = "localhost"
+    
     print("🏛️  RealAgent Dashboard")
     print(f"📊 http://localhost:5000")
-    print(f"📊 http://127.0.0.1:5000 (use this for Safari)\n")
+    print(f"📊 http://127.0.0.1:5000 (use this for Safari)")
+    print(f"📱 http://{local_ip}:5000 (for smartphones on same network)\n")
     
     # Run Flask app with minimal logging
+    # Bind to 0.0.0.0 to allow access from other devices on the network
     import logging
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
     
-    app.run(debug=False, host='localhost', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5000)

@@ -8428,7 +8428,7 @@
                 const requestPayload = {
                     updates: updates,
                     user: 'Dashboard',
-                    regenerate: !imageReorderSuccess,  // Only regenerate if image reorder didn't already do it
+                    regenerate: true,  // Always regenerate HTML when fields are updated
                     changed_fields: changedFields  // Send list of changed fields for journal
                 };
                 

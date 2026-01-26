@@ -1043,29 +1043,36 @@
       .lightbox-img { max-width: 96vw; max-height: 82vh; }
     }
     
-    /* Persistent Call Button */
-    .call-button-container {
+    /* Bottom Action Buttons Container */
+    .bottom-actions {
       position: fixed;
       bottom: 1.5rem;
       left: 50%;
       transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem; /* Space between buttons */
       z-index: 100;
+      pointer-events: none; /* Allow clicks through container */
+    }
+    
+    /* Persistent Call Button */
+    .call-button-container {
+      position: relative;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.3s ease, visibility 0.3s ease;
+      pointer-events: auto; /* Re-enable clicks on button */
     }
     
     /* Notification Bell Button */
     .notify-button-container {
-      position: fixed;
-      bottom: 1.5rem;
-      /* Calculate position to be equidistant from call button and left edge */
-      /* Mirror the share button positioning logic for the left side */
-      left: calc(20% - 28px); /* 20% from left minus half button width (56px/2) */
-      z-index: 100;
+      position: relative;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.3s ease, visibility 0.3s ease;
+      pointer-events: auto; /* Re-enable clicks on button */
     }
     
     .notify-button {
@@ -1177,22 +1184,11 @@
     
     /* Share Button Styles */
     .share-button-container {
-      position: fixed;
-      bottom: 1.5rem;
-      /* Calculate position to be equidistant from call button and right edge */
-      /* Call button ends roughly at 60% (center + half its width) */
-      /* So position at 80% for equal spacing (20% from call button edge, 20% from screen edge) */
-      right: calc(20% - 28px); /* 20% from right minus half button width (56px/2) */
-      z-index: 100;
+      position: relative;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-    
-    /* Ensure consistent positioning regardless of language */
-    body[lang="ru"] .share-button-container,
-    body[lang="ro"] .share-button-container {
-      right: calc(20% - 28px); /* Force same positioning for both languages */
+      pointer-events: auto; /* Re-enable clicks on button */
     }
     
     body:not(.dark-mode) .share-button-container.visible {
@@ -1203,6 +1199,12 @@
     body.dark-mode .share-button-container.visible {
       opacity: 1.0;
       visibility: visible;
+    }
+    
+    .share-button-container.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
     
     .share-button {

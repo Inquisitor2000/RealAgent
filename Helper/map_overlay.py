@@ -74,12 +74,12 @@ class MapOverlayServer:
                 pass
         
         server_instance = self
-        self.server = HTTPServer(('localhost', self.port), MapHandler)
+        self.server = HTTPServer(('127.0.0.1', self.port), MapHandler)
         self.server_thread = threading.Thread(target=self.server.serve_forever)
         self.server_thread.daemon = True
         self.server_thread.start()
         
-        return f"http://localhost:{self.port}"
+        return f"http://127.0.0.1:{self.port}"
     
     def stop_server(self):
         """Stop the HTTP server."""
@@ -971,14 +971,22 @@ def create_interactive_map(original_address, estimated_lat=47.0105, estimated_ln
         server = MapOverlayServer()
         server_url = server.start_server(temp_dir)
         
-        # Open map in Edge browser (consistent with Dashboard.bat)
+        # Open map in browser (Safari for macOS, Edge for Windows)
         map_url = f"{server_url}/address_correction_map.html"
+        import platform
+        import subprocess
+        
         try:
-            # Try to open in Edge specifically
-            import subprocess
-            subprocess.Popen(['start', 'msedge', map_url], shell=True)
+            if platform.system() == 'Darwin':  # macOS
+                # Open in Safari
+                subprocess.Popen(['open', '-a', 'Safari', map_url])
+            elif platform.system() == 'Windows':
+                # Open in Edge
+                subprocess.Popen(['start', 'msedge', map_url], shell=True)
+            else:  # Linux
+                webbrowser.open(map_url)
         except Exception:
-            # Fallback to default browser if Edge not available
+            # Final fallback to default browser
             webbrowser.open(map_url)
         
         print("⏳  Please select the correct location on the map...")
