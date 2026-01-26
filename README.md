@@ -107,24 +107,41 @@ RealAgent/
 
 ### Installation
 
-1. **Clone the repository**
+#### One-Command Setup (Recommended)
+
 ```bash
-git clone https://github.com/yourusername/RealAgent.git
+# Clone the repository
+git clone https://github.com/Inquisitor2000/RealAgent.git
 cd RealAgent
+
+# Run the installer (handles everything automatically)
+bash install.sh
 ```
 
-2. **Install dependencies**
+The installer will:
+- ✅ Check Python 3.8+ installation
+- ✅ Create virtual environment
+- ✅ Install all dependencies
+- ✅ Install Playwright browsers
+- ✅ Initialize database
+
+#### Manual Installation
+
+If you prefer manual setup:
+
 ```bash
+# 1. Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 2. Install dependencies
 pip install -r requirements.txt
-```
+pip install qrcode segno
 
-3. **Install Playwright browsers** (for web scraping)
-```bash
+# 3. Install Playwright browsers
 playwright install chromium
-```
 
-4. **Initialize the database**
-```bash
+# 4. Initialize database
 python -c "from Helper.database import init_mainframe_db; init_mainframe_db()"
 ```
 
@@ -132,20 +149,33 @@ python -c "from Helper.database import init_mainframe_db; init_mainframe_db()"
 
 #### Scrape a Listing
 ```bash
+# Activate virtual environment
+source .venv/bin/activate
+
+# Run scraper
 python Agent.py
 # Enter a 999.md listing URL when prompted
 ```
 
 #### Launch Dashboard
 ```bash
+# Activate virtual environment
+source .venv/bin/activate
+
+# Start dashboard
 python Dashboard.py
 # Open http://localhost:5000 in your browser
 ```
 
 #### Regenerate HTML
 ```bash
+# Activate virtual environment
+source .venv/bin/activate
+
+# Regenerate specific listing
 python regenerate_html.py --listing-id 102312333
-# Or batch regenerate all listings:
+
+# Or batch regenerate all listings
 python regenerate_html.py --batch
 ```
 
