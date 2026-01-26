@@ -2894,7 +2894,8 @@ if __name__ == '__main__':
         LISTINGS_DIR.mkdir(exist_ok=True)
     
     print("🏛️  RealAgent Dashboard")
-    print(f"📊 http://localhost:5000\n")
+    print(f"📊 http://localhost:5000")
+    print(f"📊 http://127.0.0.1:5000 (use this for Safari)\n")
     
     # Run Flask app with minimal logging
     import logging
