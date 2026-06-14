@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RealAgent - Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/dashboard.css">
+    <style>
+        .listing-table { width: 100%; border-collapse: collapse; }
+        .listing-table th, .listing-table td {
+            padding: 10px 14px; text-align: left;
+            border-bottom: 1px solid rgba(216,219,226,0.08);
+        }
+        .listing-table th {
+            font-size: 11px; text-transform: uppercase;
+            color: rgba(216,219,226,0.5); font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .listing-table tr:hover td { background: rgba(73,145,103,0.04); }
+        .status-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+        }
+        .status-active { background: rgba(73,145,103,0.15); color: #6aba8a; }
+        .status-archived { background: rgba(216,219,226,0.08); color: rgba(216,219,226,0.5); }
+        .stats-bar {
+            display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .stat-card {
+            background: rgba(42,42,42,0.6); border: 1px solid rgba(216,219,226,0.08);
+            border-radius: 12px; padding: 16px 24px; flex: 1; min-width: 140px;
+        }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #d8dbe2; }
+        .stat-card .label { font-size: 12px; color: rgba(216,219,226,0.5); margin-top: 4px; }
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+        }
+        .top-bar h2 { font-size: 20px; font-weight: 600; }
+        .user-info {
+            font-size: 14px; color: rgba(216,219,226,0.6);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 8px; font-size: 13px;
+            font-weight: 500; cursor: pointer; border: none;
+            transition: all 0.15s ease;
+        }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .btn-primary { background: #499167; color: white; }
+        .btn-primary:hover { background: #5aa878; }
+        .btn-ghost {
+            background: transparent; color: rgba(216,219,226,0.6);
+            border: 1px solid rgba(216,219,226,0.12);
+        }
+        .btn-ghost:hover { background: rgba(216,219,226,0.06); color: #d8dbe2; }
+        .btn-danger { background: rgba(239,68,68,0.15); color: #fca5a5; }
+        .btn-danger:hover { background: rgba(239,68,68,0.25); }
+        a { color: #499167; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: rgba(216,219,226,0.4);
+        }
+        .empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+        .flash {
+            padding: 12px 16px; border-radius: 10px; margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .flash-success { background: rgba(73,145,103,0.1); border: 1px solid rgba(73,145,103,0.2); color: #6aba8a; }
+        .flash-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container" style="max-width:1200px;margin:0 auto;padding:32px 24px;">
+        <div class="top-bar">
+            <h2>Listings</h2>
+            <div class="user-info">
+                <span>{{.User.Username}}</span>
+                <form action="/logout" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-ghost btn-sm">Logout</button>
+                </form>
+            </div>
+        </div>
+
+        {{if .Flash}}
+        <div class="flash flash-{{.Flash.Type}}">{{.Flash.Message}}</div>
+        {{end}}
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="value">{{.Stats.Total}}</div>
+                <div class="label">Total Listings</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">{{.Stats.Active}}</div>
+                <div class="label">Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">{{.Stats.Sold}}</div>
+                <div class="label">Sold</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">{{.Stats.Rented}}</div>
+                <div class="label">Rented</div>
+            </div>
+        </div>
+
+        {{if .Listings}}
+        <table class="listing-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Price</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Listings}}
+                <tr>
+                    <td style="font-family:monospace;font-size:12px;">{{.ID}}</td>
+                    <td><a href="{{.URL}}" target="_blank">{{.TitleRO}}</a></td>
+                    <td>{{.Price}}</td>
+                    <td style="font-size:13px;color:rgba(216,219,226,0.6);">{{.Address}}</td>
+                    <td>
+                        {{if eq .Status "active"}}
+                        <span class="status-badge status-active">Active</span>
+                        {{else}}
+                        <span class="status-badge status-archived">{{.Status}}</span>
+                        {{end}}
+                    </td>
+                    <td>
+                        <form action="/api/listings/{{.ID}}/sync" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-primary btn-sm">Sync</button>
+                        </form>
+                        <form action="/api/listings/{{.ID}}/delete" method="post" style="display:inline;" onsubmit="return confirm('Delete this listing?')">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <div class="empty-state">
+            <h3>No Listings Yet</h3>
+            <p>Add your first listing to get started.</p>
+        </div>
+        {{end}}
+    </div>
+</body>
+</html>

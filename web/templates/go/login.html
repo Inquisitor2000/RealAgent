@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RealAgent - Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 50%, #1f1f1f 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #d8dbe2;
+        }
+        .login-container {
+            background: rgba(42, 42, 42, 0.95);
+            border: 1px solid rgba(216, 219, 226, 0.12);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            backdrop-filter: blur(10px);
+        }
+        .logo { text-align: center; margin-bottom: 35px; }
+        .logo h1 { font-size: 32px; color: #d8dbe2; margin-bottom: 8px; font-weight: 600; }
+        .logo p { color: rgba(216, 219, 226, 0.6); font-size: 15px; }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block; margin-bottom: 8px; color: #d8dbe2;
+            font-weight: 500; font-size: 14px;
+        }
+        input {
+            width: 100%; padding: 14px 16px;
+            background: rgba(216, 219, 226, 0.06);
+            border: 2px solid rgba(216, 219, 226, 0.12);
+            border-radius: 12px; font-size: 16px; color: #d8dbe2;
+            transition: all 0.2s ease;
+        }
+        input::placeholder { color: rgba(216, 219, 226, 0.4); }
+        input:focus {
+            outline: none; border-color: #499167;
+            background: rgba(216, 219, 226, 0.1);
+            box-shadow: 0 0 0 3px rgba(73, 145, 103, 0.1);
+        }
+        button {
+            width: 100%; padding: 14px; background: #499167;
+            color: white; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease; margin-top: 10px;
+        }
+        button:hover {
+            background: #5aa878; transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(73, 145, 103, 0.3);
+        }
+        button:active { transform: translateY(0); }
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5; padding: 12px; border-radius: 10px;
+            margin-bottom: 20px; font-size: 14px; display: none;
+        }
+        .error.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>RealAgent</h1>
+            <p>Property Management Dashboard</p>
+        </div>
+
+        <div class="error" id="error">{{if .Error}}<div class="error show">{{.Error}}</div>{{end}}</div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit">Sign In</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error');
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = '/';
+                } else {
+                    errorDiv.textContent = data.error || 'Login failed';
+                    errorDiv.classList.add('show');
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Connection error. Please try again.';
+                errorDiv.classList.add('show');
+            }
+        });
+    </script>
+</body>
+</html>

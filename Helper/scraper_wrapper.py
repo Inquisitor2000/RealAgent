@@ -331,6 +331,7 @@ def scrape_listing_from_url(url: str, template_name: str = 'luna') -> dict:
             print(f"✅ Saved to database: {listing_id}")
             
             # Fetch and save POI data
+            poi_data = None
             if listing_data.get('map_data') and listing_data['map_data'].get('lat') and listing_data['map_data'].get('lng'):
                 try:
                     from Helper.poi_fetcher import fetch_pois_for_listing

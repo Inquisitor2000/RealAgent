@@ -139,3 +139,19 @@ notifications.db
 
 # Dashboard test files
 test_dashboard.py
+
+# Go binary
+realagent
+
+# CodeGraph index
+.codegraph/
+
+# Generated listing output folders
+Listings/
+
+# SQLite WAL/SHM (companion files)
+*.db-shm
+*.db-wal
+
+# macOS metadata
+.DS_Store
