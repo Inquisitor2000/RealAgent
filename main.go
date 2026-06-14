@@ -15,7 +15,8 @@ import (
 	"strings"
 	"time"
 
-	_ "modernc.org/sqlite"
+	"realagent/internal/api"
+	"realagent/internal/database"
 )
 
 // ─── Embedded Assets ───────────────────────────────────────────────
@@ -46,37 +47,17 @@ type User struct {
 	Username string `json:"username"`
 	FullName string `json:"full_name"`
 	Role     string `json:"role"`
-	Active   bool   `json:"active"`
-}
-
-type Listing struct {
-	ID        int
-	URL       string
-	TitleRO   string
-	TitleRU   string
-	Price     string
-	Address   string
-	Status    string
-	CreatedAt string
-	UpdatedAt string
 }
 
 type DashboardData struct {
 	User     User
-	Listings []Listing
-	Stats    Stats
+	Listings []database.ListingBasic
+	Stats    database.ListingStats
 	Flash    *FlashMsg
 }
 
-type Stats struct {
-	Total  int
-	Active int
-	Sold   int
-	Rented int
-}
-
 type FlashMsg struct {
-	Type    string // "success" or "error"
+	Type    string
 	Message string
 }
 
@@ -139,7 +120,7 @@ func setUser(w http.ResponseWriter, user User) {
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   86400 * 7, // 7 days
+		MaxAge:   86400 * 7,
 	})
 }
 
@@ -154,87 +135,6 @@ func clearSession(w http.ResponseWriter) {
 	})
 }
 
-// ─── Auth ──────────────────────────────────────────────────────────
-
-func authenticateUser(username, password string) (*User, error) {
-	hash := sha256.Sum256([]byte(password))
-	passwordHash := hex.EncodeToString(hash[:])
-
-	var u User
-	err := db.QueryRow(`
-		SELECT id, username, full_name, role, active
-		FROM users WHERE username = ? AND password_hash = ?
-	`, username, passwordHash).Scan(&u.ID, &u.Username, &u.FullName, &u.Role, &u.Active)
-
-	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("invalid credentials")
-	}
-	if err != nil {
-		return nil, err
-	}
-	if !u.Active {
-		return nil, fmt.Errorf("account disabled")
-	}
-	return &u, nil
-}
-
-// ─── DB Queries ───────────────────────────────────────────────────
-
-func getListings(status string) ([]Listing, error) {
-	query := `
-		SELECT id, url, title_ro, title_ru, price_json, address, status,
-			   created_at, updated_at
-		FROM listings
-	`
-	var args []interface{}
-	if status != "all" {
-		query += " WHERE status = ?"
-		args = append(args, status)
-	}
-	query += " ORDER BY created_at DESC"
-
-	rows, err := db.Query(query, args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var listings []Listing
-	for rows.Next() {
-		var l Listing
-		var priceJSON, createdAt, updatedAt sql.NullString
-		err := rows.Scan(&l.ID, &l.URL, &l.TitleRO, &l.TitleRU,
-			&priceJSON, &l.Address, &l.Status,
-			&createdAt, &updatedAt)
-		if err != nil {
-			return nil, err
-		}
-		if priceJSON.Valid {
-			l.Price = priceJSON.String
-		}
-		if createdAt.Valid {
-			l.CreatedAt = createdAt.String
-		}
-		if updatedAt.Valid {
-			l.UpdatedAt = updatedAt.String
-		}
-		listings = append(listings, l)
-	}
-	return listings, nil
-}
-
-func getStats() (*Stats, error) {
-	var s Stats
-	err := db.QueryRow("SELECT COUNT(*) FROM listings").Scan(&s.Total)
-	if err != nil {
-		return nil, err
-	}
-	db.QueryRow("SELECT COUNT(*) FROM listings WHERE status = 'active'").Scan(&s.Active)
-	db.QueryRow("SELECT COUNT(*) FROM listings WHERE sold = 1").Scan(&s.Sold)
-	db.QueryRow("SELECT COUNT(*) FROM listings WHERE rented = 1").Scan(&s.Rented)
-	return &s, nil
-}
-
 // ─── Middleware ────────────────────────────────────────────────────
 
 func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
@@ -244,7 +144,22 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-		// Store user in context for handlers
+		r.Header.Set("X-User-Name", user.Username)
+		r.Header.Set("X-User-ID", fmt.Sprintf("%d", user.ID))
+		r.Header.Set("X-User-Role", user.Role)
+		next(w, r)
+	}
+}
+
+func apiAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := getUser(r)
+		if user == nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
+			return
+		}
 		r.Header.Set("X-User-Name", user.Username)
 		r.Header.Set("X-User-ID", fmt.Sprintf("%d", user.ID))
 		r.Header.Set("X-User-Role", user.Role)
@@ -259,13 +174,10 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		handleLoginPost(w, r)
 		return
 	}
-
-	// Already logged in? redirect to /
 	if getUser(r) != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	templates.ExecuteTemplate(w, "login.html", nil)
 }
@@ -276,22 +188,19 @@ func handleLoginPost(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false, "error": "Invalid request",
-		})
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid request"})
 		return
 	}
 
-	user, err := authenticateUser(strings.TrimSpace(body.Username), body.Password)
+	user, err := database.AuthenticateUser(db, strings.TrimSpace(body.Username), body.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false, "error": err.Error(),
-		})
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
 		return
 	}
 
-	setUser(w, *user)
+	u := User{ID: user.ID, Username: user.Username, FullName: user.FullName, Role: user.Role}
+	setUser(w, u)
 	log.Printf("✅ User logged in: %s (%s)", user.Username, user.Role)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
@@ -315,15 +224,13 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listings, err := getListings("all")
+	listings, err := database.GetAllListings(db, "all")
 	if err != nil {
-		log.Printf("Error fetching listings: %v", err)
-		listings = []Listing{}
+		listings = []database.ListingBasic{}
 	}
-
-	stats, err := getStats()
+	stats, err := database.GetStatistics(db)
 	if err != nil {
-		stats = &Stats{}
+		stats = &database.ListingStats{}
 	}
 
 	data := DashboardData{
@@ -339,73 +246,15 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleAPIListings(w http.ResponseWriter, r *http.Request) {
-	user := getUser(r)
-	if user == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
+// ─── Route Registration ───────────────────────────────────────────
 
-	status := r.URL.Query().Get("status")
-	if status == "" {
-		status = "all"
-	}
-	listings, err := getListings(status)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if listings == nil {
-		listings = []Listing{}
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(listings)
-}
-
-// ─── Main ──────────────────────────────────────────────────────────
-
-func main() {
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "Mainframe.db"
-	}
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "5000"
-	}
-
-	// Open database
-	var err error
-	db, err = sql.Open("sqlite", dbPath)
-	if err != nil {
-		log.Fatalf("Failed to open database: %v", err)
-	}
-	defer db.Close()
-
-	// Enable WAL mode for concurrency
-	db.Exec("PRAGMA journal_mode=WAL")
-	db.Exec("PRAGMA busy_timeout=5000")
-
-	// Verify DB connectivity
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Database ping failed: %v", err)
-	}
-	log.Printf("✅ Connected to database: %s", dbPath)
-
-	// Parse templates
-	templates = template.Must(template.ParseFS(content, "web/templates/go/*.html"))
-	log.Printf("✅ Templates loaded")
-
-	mux := http.NewServeMux()
-
+func registerRoutes(mux *http.ServeMux, apiSrv *api.Server) {
 	// Static files
 	staticFS := http.FileServer(http.FS(content))
 	mux.Handle("GET /static/", staticFS)
 	mux.Handle("GET /pwa/", staticFS)
 
-	// Dashboard CSS (served at root for template compatibility)
+	// Dashboard CSS at root path
 	mux.HandleFunc("GET /dashboard.css", func(w http.ResponseWriter, r *http.Request) {
 		data, err := content.ReadFile("web/static/dashboard.css")
 		if err != nil {
@@ -416,17 +265,96 @@ func main() {
 		w.Write(data)
 	})
 
-	// Auth routes
+	// Auth pages
 	mux.HandleFunc("GET /login", handleLogin)
 	mux.HandleFunc("POST /api/auth/login", handleLoginPost)
 	mux.Handle("POST /logout", http.HandlerFunc(handleLogout))
 	mux.Handle("GET /logout", http.HandlerFunc(handleLogout))
 
-	// Dashboard
-	mux.HandleFunc("GET /", handleDashboard)
+	// Dashboard (auth required)
+	mux.Handle("GET /", authMiddleware(handleDashboard))
 
-	// API
-	mux.HandleFunc("GET /api/listings", handleAPIListings)
+	// ─── API Routes ─────────────────────────────────────────────
+
+	// Listings
+	mux.HandleFunc("GET /api/listings", apiSrv.HandleListings)
+	mux.HandleFunc("POST /api/listing/create", apiSrv.HandleCreateListing)
+	
+	// Listing by ID (sub-resources must be registered first for specificity)
+	mux.HandleFunc("GET /api/listing/{id}/images", apiSrv.HandleListingImages)
+	mux.HandleFunc("POST /api/listing/{id}/toggle-sold", apiSrv.HandleToggleSold)
+	mux.HandleFunc("POST /api/listing/{id}/toggle-rented", apiSrv.HandleToggleRented)
+	mux.HandleFunc("GET /api/listing/{id}/poi", apiSrv.HandleListingPOI)
+	mux.HandleFunc("GET /api/listing/{id}", apiSrv.HandleListing)
+	mux.HandleFunc("PUT /api/listing/{id}", apiSrv.HandleListing)
+	mux.HandleFunc("DELETE /api/listing/{id}", apiSrv.HandleListing)
+
+	// Search
+	mux.HandleFunc("POST /api/express-search", apiSrv.HandleSearch)
+
+	// Data
+	mux.HandleFunc("GET /api/statistics", apiSrv.HandleStatistics)
+	mux.HandleFunc("GET /api/coordinates", apiSrv.HandleCoordinates)
+	mux.HandleFunc("GET /api/last_update", apiSrv.HandleLastUpdate)
+	mux.HandleFunc("GET /api/templates", apiSrv.HandleTemplates)
+
+	// Users (admin-only via middleware)
+	mux.Handle("GET /api/users", apiAuthMiddleware(apiSrv.HandleUsers))
+	mux.Handle("POST /api/users", apiAuthMiddleware(apiSrv.HandleUsers))
+
+	// Auth API
+	mux.Handle("GET /api/auth/me", apiAuthMiddleware(apiSrv.HandleAuthMe))
+	mux.Handle("POST /api/auth/change-password", apiAuthMiddleware(apiSrv.HandleChangePassword))
+
+	// Journal
+	mux.HandleFunc("GET /api/journal", apiSrv.HandleJournal)
+	mux.HandleFunc("POST /api/journal", apiSrv.HandleJournal)
+	mux.HandleFunc("PUT /api/journal/", apiSrv.HandleJournalEntry)
+	mux.HandleFunc("DELETE /api/journal/", apiSrv.HandleJournalEntry)
+}
+
+// ─── Main ──────────────────────────────────────────────────────────
+
+func main() {
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "Mainframe.db"
+	}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5000"
+	}
+
+	// Open database
+	var err error
+	db, err = database.OpenDB(dbPath)
+	if err != nil {
+		log.Fatalf("Failed to open database: %v", err)
+	}
+	defer db.Close()
+	log.Printf("✅ Connected to database: %s", dbPath)
+
+	// Initialize schema (idempotent)
+	if err := database.InitSchema(db); err != nil {
+		log.Fatalf("Failed to initialize schema: %v", err)
+	}
+	log.Printf("✅ Schema initialized")
+
+	// Seed default user if empty
+	if err := database.SeedDefaultUser(db); err != nil {
+		log.Printf("⚠️ Seed user failed: %v", err)
+	}
+
+	// Parse templates
+	templates = template.Must(template.ParseFS(content, "web/templates/go/*.html"))
+	log.Printf("✅ Templates loaded")
+
+	// Create API server
+	apiSrv := api.New(db)
+
+	// Register routes
+	mux := http.NewServeMux()
+	registerRoutes(mux, apiSrv)
 
 	log.Printf("🚀 RealAgent starting on :%s", port)
 	log.Printf("   Open http://localhost:%s", port)
