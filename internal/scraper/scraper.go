@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"realagent/internal/database"
+	"realagent/internal/poi"
 )
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -165,7 +166,20 @@ func (s *Scraper) ScrapeListing(ctx context.Context, urlStr, templateName string
 		return &ScrapeResult{ListingID: id, URL: urlStr, Error: fmt.Sprintf("db save failed: %v", err)}, nil
 	}
 
-	log.Printf("✅ Saved listing: %s", savedID)
+	// 10. Fetch POI data in background — listing returned immediately,
+	//     POIs populate in DB as they arrive.
+	if lat != 0 || lng != 0 {
+		savedID := savedID // capture range var
+		go func() {
+			if _, err := poi.FetchAndSave(s.DB, savedID, lat, lng, 500); err != nil {
+				log.Printf("⚠️ POI fetch after scrape failed for %s: %v", savedID, err)
+			} else {
+				log.Printf("  POI data fetched for %s", savedID)
+			}
+		}()
+	}
+
+	log.Printf("✅ Saved: %s (POI fetching in background)", savedID)
 	return &ScrapeResult{Success: true, ListingID: savedID, URL: urlStr}, nil
 }
 

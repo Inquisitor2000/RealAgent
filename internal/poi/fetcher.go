@@ -3,14 +3,28 @@ package poi
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"realagent/internal/database"
+)
+
+// ─── Config ─────────────────────────────────────────────────────────
+
+const (
+	defaultRadius    = 500
+	defaultTimeout   = 15 * time.Second  // per-HTTP-call; connection-refused is instant, slow mirrors timeout fast
+	maxRetries       = 3
+	baseRetryDelay   = 2 * time.Second
+	interQueryDelay  = 1 * time.Second   // between batch groups to avoid rate-limiting
+	categoryCap      = 10
 )
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -23,11 +37,15 @@ type CategoryDef struct {
 }
 
 // POIFetcher fetches points of interest from the Overpass API.
+// Falls back through multiple mirrors if the primary is unreachable.
 type POIFetcher struct {
 	HTTPClient  *http.Client
-	BaseURL     string
+	BaseURLs    []string // tried in order; first to connect wins
 	MaxPerGroup int
 	Verbose     bool
+	MaxRetries  int
+	BaseDelay   time.Duration
+	QueryDelay  time.Duration
 	Categories  []CategoryDef
 }
 
@@ -71,42 +89,192 @@ type overpassCenter struct {
 
 // ─── Constructor ───────────────────────────────────────────────────
 
-// New creates a POIFetcher with default categories.
+// fallbackURLs are tried in order.
+// overpass-api.de is often blocked from certain networks;
+// kumi.systems is a community mirror that's usually reachable.
+var fallbackURLs = []string{
+	"https://overpass.kumi.systems/api/interpreter", // working mirror (confirmed)
+	"https://overpass-api.de/api/interpreter",       // primary, may be blocked
+}
+
+// New creates a POIFetcher with default categories and lazy background fetching.
 func New() *POIFetcher {
 	return &POIFetcher{
-		HTTPClient:  &http.Client{Timeout: 30 * time.Second},
-		BaseURL:     "https://overpass-api.de/api/interpreter",
+		HTTPClient:  &http.Client{Timeout: defaultTimeout},
+		BaseURLs:    fallbackURLs,
 		MaxPerGroup: 15,
+		Verbose:     true,
+		MaxRetries:  maxRetries,
+		BaseDelay:   baseRetryDelay,
+		QueryDelay:  interQueryDelay,
 		Categories:  defaultCategories(),
 	}
 }
 
 func defaultCategories() []CategoryDef {
 	return []CategoryDef{
-		{Key: "kindergartens", Query: `["amenity"="kindergarten"]`, MaxPois: 5},
-		{Key: "schools", Query: `["amenity"="school"]`, MaxPois: 5},
-		{Key: "lyceums", Query: `["amenity"="college"]`, MaxPois: 5},
-		{Key: "universities", Query: `["amenity"="university"]`, MaxPois: 5},
-		{Key: "hospitals", Query: `["amenity"="hospital"]`, MaxPois: 5},
-		{Key: "pharmacies", Query: `["amenity"="pharmacy"]`, MaxPois: 5},
-		{Key: "supermarkets", Query: `["shop"="supermarket"]`, MaxPois: 5},
-		{Key: "restaurants", Query: `["amenity"="restaurant"]`, MaxPois: 10},
-		{Key: "cafes", Query: `["amenity"="cafe"]`, MaxPois: 5},
-		{Key: "banks", Query: `["amenity"="bank"]`, MaxPois: 5},
-		{Key: "parks", Query: `["leisure"="park"]`, MaxPois: 5},
-		{Key: "parkings", Query: `["amenity"="parking"]`, MaxPois: 5},
-		{Key: "gyms", Query: `["leisure"="fitness_centre"]`, MaxPois: 5},
-		{Key: "cinemas", Query: `["amenity"="cinema"]`, MaxPois: 3},
-		{Key: "bus_stops", Query: `["highway"="bus_stop"]`, MaxPois: 10},
-		{Key: "police", Query: `["amenity"="police"]`, MaxPois: 3},
-		{Key: "post_offices", Query: `["amenity"="post_office"]`, MaxPois: 3},
-		{Key: "libraries", Query: `["amenity"="library"]`, MaxPois: 3},
+		{Key: "kindergartens", Query: `["amenity"="kindergarten"]`, MaxPois: categoryCap},
+		{Key: "schools", Query: `["amenity"="school"]`, MaxPois: categoryCap},
+		{Key: "lyceums", Query: `["amenity"="college"]`, MaxPois: categoryCap},
+		{Key: "universities", Query: `["amenity"="university"]`, MaxPois: categoryCap},
+		{Key: "hospitals", Query: `["amenity"="hospital"]`, MaxPois: categoryCap},
+		{Key: "pharmacies", Query: `["amenity"="pharmacy"]`, MaxPois: categoryCap},
+		{Key: "supermarkets", Query: `["shop"="supermarket"]`, MaxPois: categoryCap},
+		{Key: "restaurants", Query: `["amenity"="restaurant"]`, MaxPois: categoryCap},
+		{Key: "cafes", Query: `["amenity"="cafe"]`, MaxPois: categoryCap},
+		{Key: "banks", Query: `["amenity"="bank"]`, MaxPois: categoryCap},
+		{Key: "parks", Query: `["leisure"="park"]`, MaxPois: categoryCap},
+		{Key: "parkings", Query: `["amenity"="parking"]`, MaxPois: categoryCap},
+		{Key: "gyms", Query: `["leisure"="fitness_centre"]`, MaxPois: categoryCap},
+		{Key: "cinemas", Query: `["amenity"="cinema"]`, MaxPois: categoryCap},
+		{Key: "bus_stops", Query: `["highway"="bus_stop"]`, MaxPois: categoryCap},
+		{Key: "police", Query: `["amenity"="police"]`, MaxPois: categoryCap},
+		{Key: "post_offices", Query: `["amenity"="post_office"]`, MaxPois: categoryCap},
+		{Key: "libraries", Query: `["amenity"="library"]`, MaxPois: categoryCap},
 	}
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────
+
+func jitter(d time.Duration) time.Duration {
+	// ±25% jitter
+	frac := 0.75 + rand.Float64()*0.5
+	return time.Duration(float64(d) * frac)
+}
+
+// ─── Combined (batch) queries ──────────────────────────────────────
+
+// queryGroups defines how individual categories are merged into combined
+// Overpass queries. Reduces 18 sequential requests to ~6 batched requests.
+var queryGroups = [][]string{
+	{"kindergartens", "schools", "lyceums", "universities"},
+	{"hospitals", "pharmacies"},
+	{"supermarkets"},
+	{"restaurants", "cafes"},
+	{"banks", "post_offices", "libraries", "police"},
+	{"parks", "gyms", "cinemas"},
+	{"parkings", "bus_stops"},
+}
+
+func (f *POIFetcher) buildBatchQuery(catKeys []string, lat, lng float64, radius int) string {
+	var b strings.Builder
+	b.WriteString("[out:json][timeout:30];(\n")
+	for _, key := range catKeys {
+		for _, cat := range f.Categories {
+			if cat.Key == key {
+				q := cat.Query // e.g. ["amenity"="school"]
+				b.WriteString(fmt.Sprintf("  node%s(around:%d,%f,%f);\n", q, radius, lat, lng))
+				b.WriteString(fmt.Sprintf("  way%s(around:%d,%f,%f);\n", q, radius, lat, lng))
+				b.WriteString(fmt.Sprintf("  rel%s(around:%d,%f,%f);\n", q, radius, lat, lng))
+				break
+			}
+		}
+	}
+	totalCap := 0
+	for _, key := range catKeys {
+		for _, cat := range f.Categories {
+			if cat.Key == key {
+				totalCap += cat.MaxPois
+				break
+			}
+		}
+	}
+	b.WriteString(fmt.Sprintf(");out center %d;", totalCap+10))
+	return b.String()
+}
+
+// classifyElement maps an Overpass element back to a category key based on tags.
+func classifyElement(el overpassElement, catKeys []string) string {
+	t := el.Tags
+	amenity := t["amenity"]
+	shop := t["shop"]
+	leisure := t["leisure"]
+	highway := t["highway"]
+
+	for _, key := range catKeys {
+		switch key {
+		case "kindergartens":
+			if amenity == "kindergarten" || amenity == "childcare" {
+				return key
+			}
+		case "schools":
+			if amenity == "school" {
+				return key
+			}
+		case "lyceums":
+			if amenity == "college" {
+				return key
+			}
+		case "universities":
+			if amenity == "university" {
+				return key
+			}
+		case "hospitals":
+			if amenity == "hospital" || amenity == "clinic" || amenity == "doctors" || amenity == "dentist" {
+				return key
+			}
+		case "pharmacies":
+			if amenity == "pharmacy" || shop == "chemist" {
+				return key
+			}
+		case "supermarkets":
+			if shop == "supermarket" || shop == "convenience" || shop == "grocery" {
+				return key
+			}
+		case "restaurants":
+			if amenity == "restaurant" || amenity == "fast_food" {
+				return key
+			}
+		case "cafes":
+			if amenity == "cafe" || amenity == "bar" || amenity == "pub" {
+				return key
+			}
+		case "banks":
+			if amenity == "bank" {
+				return key
+			}
+		case "parks":
+			if leisure == "park" {
+				return key
+			}
+		case "parkings":
+			if amenity == "parking" {
+				return key
+			}
+		case "gyms":
+			if leisure == "fitness_centre" || leisure == "sports_centre" || amenity == "gym" {
+				return key
+			}
+		case "cinemas":
+			if amenity == "cinema" || amenity == "theatre" {
+				return key
+			}
+		case "bus_stops":
+			if highway == "bus_stop" {
+				return key
+			}
+		case "police":
+			if amenity == "police" {
+				return key
+			}
+		case "post_offices":
+			if amenity == "post_office" {
+				return key
+			}
+		case "libraries":
+			if amenity == "library" {
+				return key
+			}
+		}
+	}
+	return ""
 }
 
 // ─── Fetching ──────────────────────────────────────────────────────
 
-// FetchAll fetches POIs for all categories at the given location.
+// FetchAll fetches POIs for all categories at the given location using
+// batched Overpass queries with retry+backoff and inter-query delays
+// to avoid throttling the API.
 func (f *POIFetcher) FetchAll(lat, lng float64, radius int) (*FetchResult, error) {
 	result := &FetchResult{
 		Results:    make(map[string][]POIResult),
@@ -115,96 +283,206 @@ func (f *POIFetcher) FetchAll(lat, lng float64, radius int) (*FetchResult, error
 	}
 
 	if radius <= 0 {
-		radius = 500
+		radius = defaultRadius
 	}
 
-	for _, cat := range f.Categories {
-		pois, err := f.fetchCategory(lat, lng, radius, cat)
+	for _, group := range queryGroups {
+		// Inter-query delay to avoid hammering Overpass
+		time.Sleep(jitter(f.QueryDelay))
+
+		pois, err := f.fetchBatch(lat, lng, radius, group)
 		if err != nil {
 			if f.Verbose {
-				fmt.Printf("  ⚠️ POI fetch error for %s: %v\n", cat.Key, err)
+				fmt.Printf("  ⚠️ POI batch %v failed\n", group)
 			}
 			continue
 		}
-		if len(pois) > 0 {
-			if len(pois) > cat.MaxPois {
-				pois = pois[:cat.MaxPois]
+
+		for catKey, catPOIs := range pois {
+			if len(catPOIs) > 0 {
+				// Find the cap for this category
+				cap := categoryCap
+				for _, cat := range f.Categories {
+					if cat.Key == catKey {
+						cap = cat.MaxPois
+						break
+					}
+				}
+				if len(catPOIs) > cap {
+					catPOIs = catPOIs[:cap]
+				}
+				result.Results[catKey] = catPOIs
+				result.Categories[catKey] = len(catPOIs)
+				result.TotalPOIs += len(catPOIs)
 			}
-			result.Results[cat.Key] = pois
-			result.Categories[cat.Key] = len(pois)
-			result.TotalPOIs += len(pois)
 		}
 	}
 
 	return result, nil
 }
 
-func (f *POIFetcher) fetchCategory(lat, lng float64, radius int, cat CategoryDef) ([]POIResult, error) {
-	bboxLat := float64(radius) * 0.009
-	bboxLng := float64(radius) * 0.009
-	if bboxLng > 0.5 {
-		bboxLng = 0.5
+// fetchBatch executes a single combined Overpass query for a group of
+// categories, with retry + exponential backoff + jitter + multi-mirror fallback.
+// Only prints one line per batch on success or final failure.
+func (f *POIFetcher) fetchBatch(lat, lng float64, radius int, catKeys []string) (map[string][]POIResult, error) {
+	query := f.buildBatchQuery(catKeys, lat, lng, radius)
+
+	if f.Verbose {
+		log.Printf("  POI batch %v", catKeys)
 	}
 
-	overpassQ := fmt.Sprintf(`[out:json];(`+
-		`node%s(%f,%f,%f,%f);`+
-		`way%s(%f,%f,%f,%f);`+
-		`rel%s(%f,%f,%f,%f);`+
-		`);out center %d;`,
-		cat.Query, lat-bboxLat, lng-bboxLng, lat+bboxLat, lng+bboxLng,
-		cat.Query, lat-bboxLat, lng-bboxLng, lat+bboxLat, lng+bboxLng,
-		cat.Query, lat-bboxLat, lng-bboxLng, lat+bboxLat, lng+bboxLng,
-		cat.MaxPois+5)
+	var lastErr error
+	for attempt := 0; attempt < f.MaxRetries; attempt++ {
+		if attempt > 0 {
+			delay := jitter(f.BaseDelay * (1 << attempt))
+			time.Sleep(delay)
+		}
 
-	u := f.BaseURL + "?data=" + url.QueryEscape(overpassQ)
+		raw, err := f.doRequestWithFallback(query)
+		if err != nil {
+			lastErr = err
+			continue
+		}
 
-	resp, err := f.HTTPClient.Get(u)
+		var overpass overpassResponse
+		if err := json.Unmarshal(raw, &overpass); err != nil {
+			lastErr = fmt.Errorf("parse: %w", err)
+			continue
+		}
+
+		// Categorize elements
+		catResults := make(map[string][]overpassElement)
+		for _, el := range overpass.Elements {
+			assigned := classifyElement(el, catKeys)
+			if assigned != "" {
+				catResults[assigned] = append(catResults[assigned], el)
+			}
+		}
+
+		// Convert to POIResults
+		results := make(map[string][]POIResult)
+		for _, key := range catKeys {
+			elements := catResults[key]
+			if len(elements) == 0 {
+				continue
+			}
+			var pois []POIResult
+			for _, el := range elements {
+				poi := elementToPOI(el, key)
+				if poi != nil {
+					pois = append(pois, *poi)
+				}
+			}
+			if len(pois) > 0 {
+				results[key] = pois
+			}
+		}
+
+		if f.Verbose {
+			total := 0
+			for _, v := range results {
+				total += len(v)
+			}
+			log.Printf("  POI batch %v: %d POIs", catKeys, total)
+		}
+		return results, nil
+	}
+
+	if f.Verbose {
+		log.Printf("  ⚠️ POI batch %v failed after %d retries: %v", catKeys, f.MaxRetries, lastErr)
+	}
+	return nil, lastErr
+}
+
+// doRequestWithFallback tries each BaseURL in order until one succeeds.
+// Connection-refused errors skip to the next mirror immediately.
+func (f *POIFetcher) doRequestWithFallback(query string) ([]byte, error) {
+	var lastErr error
+	for i, base := range f.BaseURLs {
+		u := base + "?data=" + url.QueryEscape(query)
+
+		raw, err := f.doRequest(u)
+		if err == nil {
+			if f.Verbose && i > 0 {
+				log.Printf("  (connected via fallback: %s)", base)
+			}
+			return raw, nil
+		}
+
+		lastErr = err
+		// Connection-level errors (DNS / refused / timeout) → try next mirror
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) {
+			continue
+		}
+		// Non-connection errors (rate limit, parse, etc.) → don't fallback
+		return nil, err
+	}
+	return nil, fmt.Errorf("all mirrors failed: %w", lastErr)
+}
+
+func (f *POIFetcher) doRequest(url string) ([]byte, error) {
+	resp, err := f.HTTPClient.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("http: %w", err)
+		return nil, err // already *url.Error from stdlib
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == 429 {
+		return nil, fmt.Errorf("rate limited (429)")
+	}
+	if resp.StatusCode == 504 {
+		return nil, fmt.Errorf("gateway timeout (504)")
+	}
+	if resp.StatusCode >= 500 {
+		return nil, fmt.Errorf("server error (%d)", resp.StatusCode)
+	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("read: %w", err)
 	}
+	return body, nil
+}
 
-	var overpass overpassResponse
-	if err := json.Unmarshal(body, &overpass); err != nil {
-		return nil, fmt.Errorf("parse: %w", err)
+func elementToPOI(el overpassElement, catKey string) *POIResult {
+	name := el.Tags["name"]
+	if name == "" {
+		name = el.Tags["brand"]
+	}
+	if name == "" {
+		name = el.Tags["amenity"]
+		if name == "" {
+			name = el.Tags["shop"]
+		}
+		if name == "" {
+			name = el.Tags["leisure"]
+		}
+		if name == "" {
+			name = el.Tags["highway"]
+		}
+		if name == "" {
+			return nil
+		}
 	}
 
-	var pois []POIResult
-	for _, el := range overpass.Elements {
-		name := el.Tags["name"]
-		if name == "" {
-			name = el.Tags["brand"]
-		}
-		if name == "" {
-			continue
-		}
-
-		poiLat := el.Lat
-		poiLng := el.Lon
-		if poiLat == 0 && el.Center != nil {
-			poiLat = el.Center.Lat
-			poiLng = el.Center.Lon
-		}
-
-		addr := strings.TrimSpace(
-			el.Tags["addr:street"] + " " + el.Tags["addr:housenumber"])
-
-		pois = append(pois, POIResult{
-			Name:     name,
-			Lat:      poiLat,
-			Lng:      poiLng,
-			Category: cat.Key,
-			Type:     el.Tags["amenity"],
-			Address:  addr,
-		})
+	poiLat := el.Lat
+	poiLng := el.Lon
+	if poiLat == 0 && el.Center != nil {
+		poiLat = el.Center.Lat
+		poiLng = el.Center.Lon
 	}
 
-	return pois, nil
+	addr := strings.TrimSpace(el.Tags["addr:street"] + " " + el.Tags["addr:housenumber"])
+
+	return &POIResult{
+		Name:     name,
+		Lat:      poiLat,
+		Lng:      poiLng,
+		Category: catKey,
+		Type:     el.Tags["amenity"],
+		Address:  addr,
+	}
 }
 
 // ─── Convert to DB format ─────────────────────────────────────────

@@ -189,7 +189,17 @@ func (s *Server) getListing(w http.ResponseWriter, r *http.Request, id string) {
 		"images":              listing.Images,
 		"features":            featuresGrouped,
 		"amenities":           amenitiesGrouped,
-		"map_data":            listing.Map,
+	}
+
+	// map_data: transform ListingMap (latitude/longitude) → frontend format (lat/lng)
+	if listing.Map != nil {
+		listingMap["map_data"] = map[string]interface{}{
+			"lat":   listing.Map.Latitude,
+			"lng":   listing.Map.Longitude,
+			"title": listing.Map.MapTitle,
+		}
+	} else {
+		listingMap["map_data"] = nil
 	}
 
 	jsonSuccess(w, map[string]interface{}{
@@ -286,6 +296,16 @@ func (s *Server) HandleCreateListing(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, 500, "Failed to create listing")
 		return
 	}
+
+	// Fetch POIs in background if coordinates available
+	if data.Latitude != 0 || data.Longitude != 0 {
+		go func() {
+			if _, err := poi.FetchAndSave(s.DB, id, data.Latitude, data.Longitude, 500); err != nil {
+				log.Printf("⚠️ POI fetch after create failed for %s: %v", id, err)
+			}
+		}()
+	}
+
 	jsonSuccess(w, map[string]interface{}{"listing_id": id})
 }
 
@@ -645,14 +665,18 @@ func (s *Server) HandleListingPOI(w http.ResponseWriter, r *http.Request) {
 	if pois == nil {
 		pois = []database.ListingPOI{}
 	}
-	// Group by category into nested dict
-	grouped := make(map[string][]database.ListingPOI)
+	// Group by category, parsing poi_data JSON string into flat arrays
+	// Frontend expects: {"banks": [{"name":"...", "lat":..., "lng":..., "type":"..."}, ...]}
+	grouped := make(map[string][]interface{})
 	for _, p := range pois {
 		cat := string(p.Category)
-		grouped[cat] = append(grouped[cat], p)
+		var items []interface{}
+		if err := json.Unmarshal([]byte(p.POIData), &items); err == nil {
+			grouped[cat] = append(grouped[cat], items...)
+		}
 	}
 	if grouped == nil {
-		grouped = map[string][]database.ListingPOI{}
+		grouped = map[string][]interface{}{}
 	}
 	jsonSuccess(w, map[string]interface{}{
 		"poi_data": grouped,
@@ -862,6 +886,7 @@ func (s *Server) HandleRefreshPOIs(w http.ResponseWriter, r *http.Request) {
 		"success":    true,
 		"poi_count":  result.TotalPOIs,
 		"categories": result.Categories,
+		"added_count": result.TotalPOIs,
 		"message":    fmt.Sprintf("Found %d POIs across %d categories", result.TotalPOIs, len(result.Categories)),
 	})
 }

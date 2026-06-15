@@ -1770,6 +1770,10 @@
                 'edit-poi-refresh': 'Actualizare locații',
                 'update-pois': 'Actualizare POI',
                 'update-address': 'Actualizare Adresă',
+                'address-map-title': 'Selectează Locația',
+                'address-map-address-label': 'Adresă:',
+                'address-map-hint': 'Click pe hartă pentru a plasa pinul. Trageți pinul pentru a ajusta.',
+                'address-map-save': 'Salvează Locația',
                 'edit-features-title': 'Caracteristici', 'edit-features-section': 'Secțiune',
                 'edit-features-key': 'Caracteristică', 'edit-features-value': 'Valoare',
                 'edit-images-title': 'Imagini',
@@ -2030,6 +2034,10 @@
                 'edit-poi-refresh': 'Обновление локаций',
                 'update-pois': 'Обновить POI',
                 'update-address': 'Обновить Адрес',
+                'address-map-title': 'Выберите местоположение',
+                'address-map-address-label': 'Адрес:',
+                'address-map-hint': 'Нажмите на карту чтобы установить метку. Перетащите метку для корректировки.',
+                'address-map-save': 'Сохранить местоположение',
                 'edit-features-title': 'Характеристики', 'edit-features-section': 'Раздел',
                 'edit-features-key': 'Характеристика', 'edit-features-value': 'Значение',
                 'edit-images-title': 'Изображения',
@@ -6076,79 +6084,14 @@
                 return;
             }
             
-            // Set flag to prevent auto-refresh
-            addressUpdateInProgress = true;
-            
-            // Close the edit modal
+            // Close the edit modal first
             closeEditModal();
             
-            // Add updating overlay to the listing card
-            const listingCard = document.querySelector(`.listing-card[data-listing-id="${listingId}"]`);
-            if (listingCard) {
-                addUpdatingOverlay(listingCard, currentLanguage === 'ro' ? 'Actualizare adresă...' : 'Обновление адреса...');
-            }
+            // Small delay for edit modal close animation
+            await new Promise(resolve => setTimeout(resolve, 300));
             
-            showNotification(
-                currentLanguage === 'ro' 
-                    ? 'Se deschide harta pentru selectarea adresei...' 
-                    : 'Открывается карта для выбора адреса...',
-                false
-            );
-            
-            try {
-                const response = await fetch(`/api/listing/${listingId}/update-address`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                const result = await response.json();
-                
-                // Clear the flag
-                addressUpdateInProgress = false;
-                
-                // Remove the updating overlay
-                if (listingCard) {
-                    removeUpdatingOverlay(listingCard);
-                }
-                
-                if (result.success) {
-                    let message;
-                    if (result.address_updated) {
-                        message = currentLanguage === 'ro' 
-                            ? `✓ Adresa actualizată: ${result.new_address || 'Locație nouă'}` 
-                            : `✓ Адрес обновлён: ${result.new_address || 'Новое местоположение'}`;
-                        
-                        // Refresh the listings to show updated data
-                        await reloadCurrentView();
-                    } else if (result.cancelled) {
-                        message = currentLanguage === 'ro' 
-                            ? 'Actualizarea adresei a fost anulată' 
-                            : 'Обновление адреса отменено';
-                    } else {
-                        message = currentLanguage === 'ro' 
-                            ? 'Nicio modificare efectuată' 
-                            : 'Изменений не внесено';
-                    }
-                    showNotification(message, false);
-                } else {
-                    throw new Error(result.error || 'Failed to update address');
-                }
-            } catch (error) {
-                // Clear the flag
-                addressUpdateInProgress = false;
-                
-                // Remove the updating overlay on error
-                if (listingCard) {
-                    removeUpdatingOverlay(listingCard);
-                }
-                console.error('Error updating address:', error);
-                showNotification(
-                    currentLanguage === 'ro' 
-                        ? 'Eroare la actualizarea adresei' 
-                        : 'Ошибка обновления адреса',
-                    true
-                );
-            }
+            // Open the address helper map
+            openAddressMap(listingId);
         }
         
         // Add updating overlay to a listing card
@@ -9755,6 +9698,182 @@
                 var p = JSON.parse(priceJson);
                 return p.EUR || p.MDL || '0';
             } catch(e) { return '0'; }
+        }
+    </script>
+
+    <!-- ===== Address Helper Map Modal ===== -->
+    <div id="address-map-overlay" class="modal-overlay" style="display:none;">
+        <div class="address-map-modal">
+            <div class="address-map-header">
+                <h3 data-i18n="address-map-title">Selectează Locația</h3>
+                <button class="modal-close-btn" onclick="closeAddressMap()">&times;</button>
+            </div>
+            <div class="address-map-content">
+                <div class="address-map-field">
+                    <label for="address-map-input" data-i18n="address-map-address-label">Adresă:</label>
+                    <input type="text" id="address-map-input" class="address-map-input" placeholder="Str. Example 123, Chișinău">
+                </div>
+                <div id="address-map-container"></div>
+                <p class="address-map-hint" data-i18n="address-map-hint">Click pe hartă pentru a plasa pinul. Trageți pinul pentru a ajusta.</p>
+            </div>
+            <div class="address-map-footer">
+                <button class="btn-cancel" onclick="closeAddressMap()" data-i18n="cancel">Anulează</button>
+                <button class="btn-save" onclick="saveAddressMap()" data-i18n="address-map-save">Salvează Locația</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ─── Address Helper Map ───────────────────────────────────────
+        
+        let addressMap = null;
+        let addressMapPin = null;
+        let addressMapListingId = null;
+        
+        // Open the address map modal for a listing
+        function openAddressMap(listingId) {
+            addressMapListingId = listingId;
+            
+            // Get current data from window.currentListingData or fetch it
+            let currentLat = null, currentLng = null, currentAddress = '';
+            const listing = window.currentListingData;
+            if (listing) {
+                if (listing.map_data && listing.map_data.lat && listing.map_data.lng) {
+                    currentLat = listing.map_data.lat;
+                    currentLng = listing.map_data.lng;
+                }
+                currentAddress = listing.display_address || listing.address || '';
+            }
+            
+            document.getElementById('address-map-input').value = currentAddress;
+            document.getElementById('address-map-overlay').style.display = 'flex';
+            
+            // Init map after modal renders
+            setTimeout(() => initAddressMap(currentLat, currentLng), 150);
+        }
+        
+        // Initialize the Leaflet map
+        function initAddressMap(lat, lng) {
+            if (addressMap) {
+                addressMap.invalidateSize();
+                placeAddressPin(lat, lng);
+                return;
+            }
+            
+            const center = (lat && lng) ? [lat, lng] : [47.0105, 28.8638];
+            const zoom = (lat && lng) ? 16 : 12;
+            
+            addressMap = L.map('address-map-container', {
+                zoomControl: true,
+                attributionControl: false
+            }).setView(center, zoom);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(addressMap);
+            
+            addressMap.on('click', function(e) {
+                placeAddressPin(e.latlng.lat, e.latlng.lng);
+            });
+            
+            if (lat && lng) {
+                placeAddressPin(lat, lng);
+            }
+        }
+        
+        // Place or move the pin
+        function placeAddressPin(lat, lng) {
+            if (!addressMap) return;
+            
+            if (addressMapPin) {
+                addressMapPin.setLatLng([lat, lng]);
+            } else {
+                addressMapPin = L.marker([lat, lng], { draggable: true }).addTo(addressMap);
+                addressMapPin.on('dragend', function(e) {
+                    const pos = e.target.getLatLng();
+                    addressMapPin.setLatLng(pos);
+                    document.getElementById('address-map-input').dataset.lat = pos.lat;
+                    document.getElementById('address-map-input').dataset.lng = pos.lng;
+                });
+            }
+            addressMap.setView([lat, lng], addressMap.getZoom() || 16);
+            document.getElementById('address-map-input').dataset.lat = lat;
+            document.getElementById('address-map-input').dataset.lng = lng;
+        }
+        
+        // Save the address and coordinates
+        async function saveAddressMap() {
+            const latInput = document.getElementById('address-map-input');
+            const lat = parseFloat(latInput.dataset.lat);
+            const lng = parseFloat(latInput.dataset.lng);
+            const address = latInput.value.trim();
+            
+            if (!addressMapPin || isNaN(lat) || isNaN(lng)) {
+                showNotification(
+                    currentLanguage === 'ro' ? 'Plasați un pin pe hartă' : 'Установите метку на карте',
+                    true
+                );
+                return;
+            }
+            
+            if (!address) {
+                showNotification(
+                    currentLanguage === 'ro' ? 'Introduceți adresa' : 'Введите адрес',
+                    true
+                );
+                return;
+            }
+            
+            closeAddressMap();
+            
+            const listingCard = document.querySelector(`.listing-card[data-listing-id="${addressMapListingId}"]`);
+            if (listingCard) {
+                addUpdatingOverlay(listingCard, currentLanguage === 'ro' ? 'Actualizare adresă...' : 'Обновление адреса...');
+            }
+            
+            try {
+                const response = await fetch(`/api/listing/${addressMapListingId}/update-address`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lat: lat,
+                        lng: lng,
+                        address: address,
+                        display_address: address
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (listingCard) removeUpdatingOverlay(listingCard);
+                
+                if (result.success) {
+                    showNotification(
+                        currentLanguage === 'ro' ? '✓ Adresa a fost actualizată' : '✓ Адрес обновлён',
+                        false
+                    );
+                    await reloadCurrentView();
+                } else {
+                    throw new Error(result.error || 'Failed to update address');
+                }
+            } catch (error) {
+                if (listingCard) removeUpdatingOverlay(listingCard);
+                console.error('Address update error:', error);
+                showNotification(
+                    currentLanguage === 'ro' ? 'Eroare la actualizarea adresei' : 'Ошибка обновления адреса',
+                    true
+                );
+            }
+        }
+        
+        // Close and clean up
+        function closeAddressMap() {
+            document.getElementById('address-map-overlay').style.display = 'none';
+            if (addressMap) {
+                addressMap.remove();
+                addressMap = null;
+                addressMapPin = null;
+            }
         }
     </script>
 </body>
