@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"database/sql"
 	"embed"
@@ -9,14 +11,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"realagent/internal/api"
 	"realagent/internal/database"
+	"realagent/internal/scraper"
 )
 
 // ─── Embedded Assets ───────────────────────────────────────────────
@@ -35,8 +41,16 @@ var content embed.FS
 var (
 	db        *sql.DB
 	templates *template.Template
-	sessKey   = []byte("realagent-session-key-change-me") // TODO: env var
+	sessKey   []byte
 )
+
+func init() {
+	key := make([]byte, 32)
+	if _, err := rand.Read(key); err != nil {
+		log.Fatalf("Failed to generate session key: %v", err)
+	}
+	sessKey = key
+}
 
 const sessionName = "ra_session"
 
@@ -49,9 +63,17 @@ type User struct {
 	Role     string `json:"role"`
 }
 
+// ListingCard wraps ListingBasic with computed display fields for the template.
+type ListingCard struct {
+	database.ListingBasic
+	DisplayPrice string `json:"display_price"`
+	PriceNumeric string `json:"price_numeric"`
+	FirstImage   string `json:"first_image"`
+}
+
 type DashboardData struct {
 	User     User
-	Listings []database.ListingBasic
+	Listings []ListingCard
 	Stats    database.ListingStats
 	Flash    *FlashMsg
 }
@@ -59,6 +81,26 @@ type DashboardData struct {
 type FlashMsg struct {
 	Type    string
 	Message string
+}
+
+// ─── Template Functions ───────────────────────────────────────────
+
+// tmplFuncs returns custom functions for Go templates.
+func tmplFuncs() template.FuncMap {
+	return template.FuncMap{
+		"default": func(def, val string) string {
+			if val == "" {
+				return def
+			}
+			return val
+		},
+		"slice": func(s string, max int) string {
+			if len(s) > max {
+				return s[:max]
+			}
+			return s
+		},
+	}
 }
 
 // ─── Session Helpers ──────────────────────────────────────────────
@@ -217,6 +259,15 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
+func handleApiLogout(w http.ResponseWriter, r *http.Request) {
+	clearSession(w)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Logged out successfully",
+	})
+}
+
 func handleDashboard(w http.ResponseWriter, r *http.Request) {
 	user := getUser(r)
 	if user == nil {
@@ -233,9 +284,23 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		stats = &database.ListingStats{}
 	}
 
+	// Fetch first image for each listing
+	firstImages := database.GetFirstImages(db)
+
+	// Build listing cards with computed display fields
+	cards := make([]ListingCard, len(listings))
+	for i, l := range listings {
+		cards[i] = ListingCard{
+			ListingBasic: l,
+			DisplayPrice: l.Price,
+			PriceNumeric: extractNumericPrice(l.PriceJSON),
+			FirstImage:   firstImages[l.ID],
+		}
+	}
+
 	data := DashboardData{
 		User:     *user,
-		Listings: listings,
+		Listings: cards,
 		Stats:    *stats,
 	}
 
@@ -246,13 +311,51 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// extractNumericPrice pulls a numeric value from PriceJSON for sorting.
+func extractNumericPrice(priceJSON string) string {
+	if priceJSON == "" || priceJSON == "{}" {
+		return "0"
+	}
+	var prices map[string]interface{}
+	if err := json.Unmarshal([]byte(priceJSON), &prices); err != nil {
+		return "0"
+	}
+	// Prefer EUR
+	if v, ok := prices["EUR"]; ok {
+		return fmt.Sprintf("%v", v)
+	}
+	if v, ok := prices["MDL"]; ok {
+		return fmt.Sprintf("%v", v)
+	}
+	return "0"
+}
+
+// serveEmbed returns a handler that serves a single embedded file.
+func serveEmbed(path, contentType string) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data, err := content.ReadFile(path)
+		if err != nil {
+			http.Error(w, "Not found", http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", contentType)
+		w.Write(data)
+	}
+}
+
 // ─── Route Registration ───────────────────────────────────────────
 
 func registerRoutes(mux *http.ServeMux, apiSrv *api.Server) {
-	// Static files
-	staticFS := http.FileServer(http.FS(content))
-	mux.Handle("GET /static/", staticFS)
-	mux.Handle("GET /pwa/", staticFS)
+	// Static files (using fs.Sub to strip web/ prefix from embed paths)
+	staticRoot, _ := fs.Sub(content, "web/static")
+	pwaRoot, _ := fs.Sub(content, "web/pwa")
+	staticFS := http.FileServer(http.FS(staticRoot))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", staticFS))
+	mux.Handle("GET /pwa/assets/", http.StripPrefix("/pwa/assets/", http.FileServer(http.FS(pwaRoot))))
+	mux.HandleFunc("GET /pwa/manifest.json", serveEmbed("web/pwa/manifest.json", "application/json"))
+	mux.HandleFunc("GET /pwa/service-worker.js", serveEmbed("web/pwa/service-worker.js", "application/javascript"))
+	mux.HandleFunc("GET /pwa/pwa-init.js", serveEmbed("web/pwa/pwa-init.js", "application/javascript"))
+	mux.HandleFunc("GET /pwa/offline.html", serveEmbed("web/pwa/offline.html", "text/html"))
 
 	// Dashboard CSS at root path
 	mux.HandleFunc("GET /dashboard.css", func(w http.ResponseWriter, r *http.Request) {
@@ -270,6 +373,7 @@ func registerRoutes(mux *http.ServeMux, apiSrv *api.Server) {
 	mux.HandleFunc("POST /api/auth/login", handleLoginPost)
 	mux.Handle("POST /logout", http.HandlerFunc(handleLogout))
 	mux.Handle("GET /logout", http.HandlerFunc(handleLogout))
+	mux.HandleFunc("POST /api/auth/logout", handleApiLogout)
 
 	// Dashboard (auth required)
 	mux.Handle("GET /", authMiddleware(handleDashboard))
@@ -282,8 +386,8 @@ func registerRoutes(mux *http.ServeMux, apiSrv *api.Server) {
 	
 	// Listing by ID (sub-resources must be registered first for specificity)
 	mux.HandleFunc("GET /api/listing/{id}/images", apiSrv.HandleListingImages)
-	mux.HandleFunc("POST /api/listing/{id}/toggle-sold", apiSrv.HandleToggleSold)
-	mux.HandleFunc("POST /api/listing/{id}/toggle-rented", apiSrv.HandleToggleRented)
+	mux.HandleFunc("POST /api/listings/{id}/toggle-sold", apiSrv.HandleToggleSold)
+	mux.HandleFunc("POST /api/listings/{id}/toggle-rented", apiSrv.HandleToggleRented)
 	mux.HandleFunc("GET /api/listing/{id}/poi", apiSrv.HandleListingPOI)
 	mux.HandleFunc("GET /api/listing/{id}", apiSrv.HandleListing)
 	mux.HandleFunc("PUT /api/listing/{id}", apiSrv.HandleListing)
@@ -306,11 +410,49 @@ func registerRoutes(mux *http.ServeMux, apiSrv *api.Server) {
 	mux.Handle("GET /api/auth/me", apiAuthMiddleware(apiSrv.HandleAuthMe))
 	mux.Handle("POST /api/auth/change-password", apiAuthMiddleware(apiSrv.HandleChangePassword))
 
-	// Journal
+	// Journal — use wildcard path for ID-based routes
 	mux.HandleFunc("GET /api/journal", apiSrv.HandleJournal)
 	mux.HandleFunc("POST /api/journal", apiSrv.HandleJournal)
-	mux.HandleFunc("PUT /api/journal/", apiSrv.HandleJournalEntry)
-	mux.HandleFunc("DELETE /api/journal/", apiSrv.HandleJournalEntry)
+	mux.HandleFunc("PUT /api/journal/{id...}", apiSrv.HandleJournalEntry)
+	mux.HandleFunc("DELETE /api/journal/{id...}", apiSrv.HandleJournalEntry)
+
+	// QR code
+	mux.HandleFunc("GET /api/listing/{id}/qr", apiSrv.HandleQR)
+
+	// Listing status / images
+	mux.HandleFunc("GET /api/listing/{id}/status", apiSrv.HandleListingStatus)
+	mux.HandleFunc("PUT /api/listing/{id}/images/reorder", apiSrv.HandleImageReorder)
+	mux.HandleFunc("POST /api/listing/{id}/upload-images", apiSrv.HandleUploadImages)
+	mux.HandleFunc("POST /api/listing/{id}/refresh-pois", apiSrv.HandleRefreshPOIs)
+	mux.HandleFunc("POST /api/listing/{id}/update-address", apiSrv.HandleUpdateAddress)
+
+	// Scrape
+	mux.HandleFunc("POST /api/listing/scrape", apiSrv.HandleScrape)
+	mux.HandleFunc("POST /api/listing/{id}/sync", apiSrv.HandleSyncSingle)
+
+	// Sync batch
+	mux.HandleFunc("POST /api/sync/start", apiSrv.HandleSyncStart)
+	mux.HandleFunc("GET /api/sync/status", apiSrv.HandleSyncStatus)
+	mux.HandleFunc("POST /api/sync/stop", apiSrv.HandleSyncStop)
+
+	// Settings
+	mux.HandleFunc("GET /api/settings", apiSrv.HandleGetSettings)
+	mux.HandleFunc("POST /api/settings", apiSrv.HandleSaveSettings)
+
+	// Sections
+	mux.HandleFunc("GET /api/sections", apiSrv.HandleGetSections)
+	mux.HandleFunc("POST /api/sections", apiSrv.HandleCreateSection)
+	mux.HandleFunc("DELETE /api/sections/{id}", apiSrv.HandleDeleteSection)
+
+	// User management
+	mux.HandleFunc("POST /api/users/{id}/delete", apiSrv.HandleDeleteUser)
+	mux.HandleFunc("POST /api/users/{id}/password", apiSrv.HandleChangeUserPassword)
+
+	// File serving for generated listing pages and promotional files
+	listingsDir := http.Dir(apiSrv.ListingsDir)
+	promoDir := http.Dir("Templates/Promotional")
+	mux.Handle("GET /listings/", http.StripPrefix("/listings/", http.FileServer(listingsDir)))
+	mux.Handle("GET /promotional/", http.StripPrefix("/promotional/", http.FileServer(promoDir)))
 }
 
 // ─── Main ──────────────────────────────────────────────────────────
@@ -345,20 +487,49 @@ func main() {
 		log.Printf("⚠️ Seed user failed: %v", err)
 	}
 
-	// Parse templates
-	templates = template.Must(template.ParseFS(content, "web/templates/go/*.html"))
+	// Parse templates with custom functions
+	templates = template.Must(template.New("").Funcs(tmplFuncs()).ParseFS(content, "web/templates/go/*.html"))
 	log.Printf("✅ Templates loaded")
 
+	// Create scraper engine
+	scr := scraper.New(nil, db, "Listings")
+
 	// Create API server
-	apiSrv := api.New(db)
+	apiSrv := api.New(db, scr)
 
 	// Register routes
 	mux := http.NewServeMux()
 	registerRoutes(mux, apiSrv)
 
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
+	}
+
+	// Graceful shutdown on SIGINT/SIGTERM
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-quit
+		log.Println("⏳ Shutting down server...")
+
+		// Rotate session key — all existing sessions invalidated
+		key := make([]byte, 32)
+		if _, err := rand.Read(key); err == nil {
+			sessKey = key
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatalf("Server forced to shutdown: %v", err)
+		}
+		log.Println("✅ Server stopped gracefully")
+	}()
+
 	log.Printf("🚀 RealAgent starting on :%s", port)
 	log.Printf("   Open http://localhost:%s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Server failed: %v", err)
 	}
 }

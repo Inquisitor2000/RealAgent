@@ -5360,6 +5360,72 @@
                 }
             }
             
+            // ── Value mapping: 999.md scraped values → form option values ──
+            const scrapedValueToFormValue = {
+                'feature_fond_locativ': {
+                    'Construcţii noi': 'Construcție nouă|Новостройка',
+                    'Construcție nouă': 'Construcție nouă|Новостройка',
+                    'Secundar': 'Secundar|Вторичный',
+                },
+                'feature_stare_apartament': {
+                    'Euroreparație': 'Reparație euro|Евроремонт',
+                    'Necesită reparații': 'Necesită reparație|Требует ремонт',
+                    'Necesită reparaţii': 'Necesită reparație|Требует ремонт',
+                },
+                'feature_parking': {
+                    'Deschis': 'Stradă|Уличная',
+                    'Pazit': 'Da|Да',
+                    'Garaj': 'Garaj|Гараж',
+                    'Subterană': 'Subterană|Подземная',
+                },
+                'feature_balcony': {
+                    'Da': 'Da|Да',
+                    'Nu': 'Nu|Нет',
+                },
+                'feature_compartimentare': {
+                    'Îmbunătățită': 'Îmbunătățită|Улучшенная',
+                    'Liberă': 'Liberă|Свободная',
+                    'Individuală': 'Individuală|Индивидуальная',
+                },
+            };
+            
+            // 1. Check explicit mapping first
+            const mapping = scrapedValueToFormValue[featureName];
+            if (mapping && mapping[singleValue]) {
+                return mapping[singleValue];
+            }
+            
+            // 2. For numeric selects, extract digits from text
+            //    (e.g., "Apartament cu 2 camere" → "2")
+            const isNumericSelect = featureConfig.options.every(opt => opt === '' || /^[\d+]+$/.test(opt));
+            if (isNumericSelect) {
+                const digits = singleValue.match(/\d+/);
+                if (digits) {
+                    for (const opt of featureConfig.options) {
+                        if (opt === digits[0]) return opt;
+                    }
+                }
+            }
+            
+            // 3. Try normalized comparison (strip diacritics for Romanian)
+            function normalizeRomanian(str) {
+                return str.toLowerCase()
+                    .replace(/[ţț]/g, 't')
+                    .replace(/[şș]/g, 's')
+                    .replace(/[ăâ]/g, 'a')
+                    .replace(/[î]/g, 'i');
+            }
+            const normalizedValue = normalizeRomanian(singleValue);
+            for (const option of featureConfig.options) {
+                if (option.includes('|')) {
+                    const [roValue, ruValue] = option.split('|');
+                    if ((currentLang === 'ro' && normalizeRomanian(roValue.trim()) === normalizedValue) ||
+                        (currentLang === 'ru' && normalizeRomanian(ruValue.trim()) === normalizedValue)) {
+                        return option;
+                    }
+                }
+            }
+            
             // No bilingual match found, return original value
             return singleValue;
         }
