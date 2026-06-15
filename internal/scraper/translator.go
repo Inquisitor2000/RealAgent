@@ -3,6 +3,7 @@ package scraper
 import (
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 // PropertyFeatureTranslations maps Russian property features/characteristics to Romanian.
@@ -180,8 +181,12 @@ func init() {
 
 // DetectCyrillic checks if a string contains Cyrillic characters.
 func DetectCyrillic(text string) bool {
-	cyrillicPattern := regexp.MustCompile(`[\u0400-\u04FF]`)
-	return cyrillicPattern.MatchString(text)
+	for _, r := range text {
+		if unicode.Is(unicode.Cyrillic, r) {
+			return true
+		}
+	}
+	return false
 }
 
 // TranslateRussianToRomanian translates Russian street names/features to Romanian.

@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"bytes"
+	"encoding/json"
 	"regexp"
 	"strconv"
 	"strings"
@@ -229,8 +230,11 @@ func ParseHTML(htmlStr string) (*ScrapedData, error) {
 	// 5. Address
 	data.Address = parseAddress(doc)
 
-	// 6. Images
-	data.Images = parseImages(doc)
+	// 6. Images — try structured data first (JSON-LD/RSC), fall back to DOM parsing
+	data.Images = extractImagesFromRawHTML(htmlStr)
+	if len(data.Images) == 0 {
+		data.Images = parseImages(doc)
+	}
 
 	// 7. Yandex Map coordinates
 	data.MapLat, data.MapLng, data.HasMapData = parseMapCoordinates(doc)
@@ -393,12 +397,104 @@ func parseImages(doc *html.Node) []string {
 
 	for _, btn := range buttons {
 		src := getAttr(btn, "data-src")
+		src = normalizeImageURL(src)
 		if src != "" && !seen[src] {
 			seen[src] = true
 			images = append(images, src)
 		}
 	}
 	return images
+}
+
+// extractImagesFromRawHTML extracts image URLs from structured data in raw HTML.
+// Priority: JSON-LD structured data > RSC/HTML inline data.
+// Returns nil if no images found (caller should fall back to DOM-based parsing).
+func extractImagesFromRawHTML(htmlStr string) []string {
+	// Try 1: JSON-LD structured data (<script type="application/ld+json">)
+	re := regexp.MustCompile(`(?i)<script[^>]+type="?application/ld\+json"?[^>]*>(.*?)</script>`)
+	match := re.FindStringSubmatch(htmlStr)
+	if len(match) > 1 {
+		if urls := parseImageArrayFromJSON([]byte(match[1])); len(urls) > 0 {
+			return urls
+		}
+	}
+
+	// Try 2: Inline JSON "image":["url",...] pattern in raw HTML
+	// (catches RSC __next_f payload data without full JSON parsing)
+	reInline := regexp.MustCompile(`"image"\s*:\s*\[([^\]]+)\]`)
+	matchInline := reInline.FindStringSubmatch(htmlStr)
+	if len(matchInline) > 1 {
+		urlRe := regexp.MustCompile(`"([^"]+)"`)
+		urlMatches := urlRe.FindAllStringSubmatch(matchInline[1], -1)
+		var urls []string
+		seen := make(map[string]bool)
+		for _, m := range urlMatches {
+			u := normalizeImageURL(m[1])
+			if strings.Contains(u, "simpalsmedia") && !seen[u] {
+				seen[u] = true
+				urls = append(urls, u)
+			}
+		}
+		if len(urls) > 0 {
+			return urls
+		}
+	}
+
+	return nil
+}
+
+// parseImageArrayFromJSON walks parsed JSON to find "image" arrays with CDN URLs.
+func parseImageArrayFromJSON(raw []byte) []string {
+	var data interface{}
+	if err := json.Unmarshal(raw, &data); err != nil {
+		return nil
+	}
+
+	var urls []string
+	seen := make(map[string]bool)
+
+	var walk func(interface{})
+	walk = func(v interface{}) {
+		switch val := v.(type) {
+		case map[string]interface{}:
+			if imgs, ok := val["image"]; ok {
+				if arr, ok := imgs.([]interface{}); ok {
+					for _, img := range arr {
+						if url, ok := img.(string); ok {
+							if strings.Contains(url, "simpalsmedia") {
+								url = normalizeImageURL(url)
+								if !seen[url] {
+									seen[url] = true
+									urls = append(urls, url)
+								}
+							}
+						}
+					}
+					if len(urls) > 0 {
+						return
+					}
+				}
+			}
+			for _, child := range val {
+				walk(child)
+			}
+		case []interface{}:
+			for _, child := range val {
+				walk(child)
+			}
+		}
+	}
+	walk(data)
+
+	return urls
+}
+
+// normalizeImageURL cleans up common URL issues in 999.md image paths.
+func normalizeImageURL(url string) string {
+	// Fix double-slash after size token (e.g., "900x900//hash.jpg" → "900x900/hash.jpg")
+	url = strings.ReplaceAll(url, "900x900//", "900x900/")
+	url = strings.ReplaceAll(url, "320x240//", "320x240/")
+	return url
 }
 
 func parseMapCoordinates(doc *html.Node) (float64, float64, bool) {

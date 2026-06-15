@@ -153,6 +153,12 @@ func (s *Server) getListing(w http.ResponseWriter, r *http.Request, id string) {
 		amenitiesGrouped[a.Lang][a.AmenityKey] = a.AmenityValue == "true"
 	}
 
+	// Compute first image path for card display (full URL path)
+	firstImagePath := ""
+	if len(listing.Images) > 0 && listing.Images[0].LocalPath != "" {
+		firstImagePath = "/listings/" + listing.ID + "/" + listing.Images[0].LocalPath
+	}
+
 	listingMap := map[string]interface{}{
 		"id":                  listing.ID,
 		"url":                 listing.URL,
@@ -162,6 +168,8 @@ func (s *Server) getListing(w http.ResponseWriter, r *http.Request, id string) {
 		"description_ro":      listing.DescriptionRO,
 		"description_ru":      listing.DescriptionRU,
 		"price_json":          listing.PriceJSON,
+		"price":               listing.Price,
+		"image_path":          firstImagePath,
 		"address":             listing.Address,
 		"display_address":     listing.DisplayAddress,
 		"geocoding_address":   listing.GeocodingAddress,

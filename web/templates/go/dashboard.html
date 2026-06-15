@@ -2638,13 +2638,14 @@
                     imagesGrid.style.display = 'grid';
                     
                     // Store images for preview navigation
-                    currentPreviewImages = data.images.map(img => `/listings/${listingId}/${img}`);
+                    currentPreviewImages = data.images.map(img => `/listings/${listingId}/${img.local_path}`);
                     
                     // Preload all images into memory for instant preview navigation
                     preloadAllImages(currentPreviewImages);
                     
                     // Add each image with drag-and-drop support
-                    data.images.forEach((imagePath, index) => {
+                    data.images.forEach((imageObj, index) => {
+                        const imagePath = imageObj.local_path || imageObj.image_url;
                         const imageItem = document.createElement('div');
                         imageItem.className = 'edit-image-item';
                         imageItem.draggable = !window.editModalReadOnly;
@@ -6749,7 +6750,7 @@
                         </div>`
                     }
                 </div>
-                <div class="card-content">
+                <div class="card-content" onclick="openListing('${listing.id}')">
                     <div class="card-info">
                         <h3 class="card-title" data-title-ro="${listing.title_ro || ''}" data-title-ru="${listing.title_ru || ''}">
                             ${currentLanguage === 'ro' ? (listing.title_ro || listing.title_ru || 'Untitled') : (listing.title_ru || listing.title_ro || 'Без названия')}
@@ -6764,7 +6765,7 @@
                         ${listing.created_by ? `<div class="card-owner" style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">👤 ${listing.created_by}</div>` : ''}
                     </div>
                     <div class="card-actions">
-                        <button class="edit-listing-btn" onclick="editListing('${listing.id}')" title="Edit">
+                        <button class="edit-listing-btn" onclick="event.stopPropagation(); openEditModal('${listing.id}')" title="Edit listing">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -6850,7 +6851,7 @@
                         </div>`
                     }
                 </div>
-                <div class="card-content">
+                <div class="card-content" onclick="openListing('${listingData.id}')">
                     <div class="card-info">
                         <h3 class="card-title" data-title-ro="${listingData.title_ro || ''}" data-title-ru="${listingData.title_ru || ''}">
                             ${currentLanguage === 'ro' ? (listingData.title_ro || listingData.title_ru || 'Untitled') : (listingData.title_ru || listingData.title_ro || 'Без названия')}
@@ -6864,7 +6865,7 @@
                         <div class="card-id">ID: ${listingData.id}</div>
                     </div>
                     <div class="card-actions">
-                        <button class="edit-listing-btn" onclick="editListing('${listingData.id}')" title="Edit">
+                        <button class="edit-listing-btn" onclick="event.stopPropagation(); openEditModal('${listingData.id}')" title="Edit listing">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -7059,7 +7060,7 @@
                         </div>`
                     }
                 </div>
-                <div class="card-content">
+                <div class="card-content" onclick="openListing('${listingData.id}')">
                     <div class="card-info">
                         <h3 class="card-title" data-title-ro="${listingData.title_ro || ''}" data-title-ru="${listingData.title_ru || ''}">
                             ${currentLanguage === 'ro' ? (listingData.title_ro || listingData.title_ru || 'Untitled') : (listingData.title_ru || listingData.title_ro || 'Без названия')}
@@ -7073,7 +7074,7 @@
                         <div class="card-id">ID: ${listingData.id}</div>
                     </div>
                     <div class="card-actions">
-                        <button class="edit-listing-btn" onclick="editListing('${listingData.id}')" title="Edit">
+                        <button class="edit-listing-btn" onclick="event.stopPropagation(); openEditModal('${listingData.id}')" title="Edit listing">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -7164,12 +7165,20 @@
                     // Update placeholder to show completion status
                     updatePlaceholderCard(placeholderId, 'finalizing', translations[currentLanguage]['placeholder.finalizing'] || 'Finalizare...');
                     
-                    // Show notification, refresh when it disappears (will show full card)
-                    showNotification(
-                        translations[currentLanguage]['scrape-success'], 
-                        false, 
-                        () => refreshDashboardListings()
-                    );
+                    // Fetch the new listing detail and replace placeholder smoothly
+                    try {
+                        const detailResp = await fetch(`/api/listing/${data.listing_id}`);
+                        const detailData = await detailResp.json();
+                        if (detailData.success && detailData.listing) {
+                            replacePlaceholderWithRealListing(placeholderId, detailData.listing);
+                            showNotification(translations[currentLanguage]['scrape-success']);
+                        } else {
+                            refreshDashboardListings();
+                        }
+                    } catch (e) {
+                        console.warn('Detail fetch failed, using full refresh:', e);
+                        refreshDashboardListings();
+                    }
                 } else {
                     throw new Error(data.error || 'Unknown error');
                 }
@@ -7192,8 +7201,6 @@
                 }
                 
                 showNotification(translations[currentLanguage]['scrape-error'] + ': ' + error.message, true);
-                // Show error notification
-                showNotification((translations[currentLanguage]['scrape-error'] || 'Eroare la extragere') + ': ' + error.message, true);
             }
         }
         
