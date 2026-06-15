@@ -1036,6 +1036,14 @@
                                     </svg>
                                     Adaugă Imagini
                                 </button>
+                                <button type="button" class="btn-delete-images" id="btn-delete-images" onclick="toggleEditDeleteMode()" data-i18n="edit-delete-images">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="15" y1="9" x2="9" y2="15"/>
+                                        <line x1="9" y1="9" x2="15" y2="15"/>
+                                    </svg>
+                                    Șterge Imagini
+                                </button>
                             </div>
                             <div class="edit-images-grid" id="edit-images-grid">
                                 <!-- Images will be populated dynamically -->
@@ -1766,6 +1774,7 @@
                 'edit-features-key': 'Caracteristică', 'edit-features-value': 'Valoare',
                 'edit-images-title': 'Imagini',
                 'edit-images-empty': 'Nicio imagine disponibilă',
+                'edit-delete-images': 'Șterge Imagini',
                 'edit-add-images': 'Adaugă Imagini',
                 'houses-surface-price': 'Case - Suprafață și Preț/m²',
                 'apartments-surface-price': 'Apartamente - Suprafață și Preț/m²',
@@ -2025,6 +2034,7 @@
                 'edit-features-key': 'Характеристика', 'edit-features-value': 'Значение',
                 'edit-images-title': 'Изображения',
                 'edit-images-empty': 'Изображения недоступны',
+                'edit-delete-images': 'Удалить Изображения',
                 'edit-add-images': 'Добавить изображения',
                 'houses-surface-price': 'Дома - Площадь и Цена/м²',
                 'apartments-surface-price': 'Квартиры - Площадь и Цена/м²',
@@ -2655,17 +2665,43 @@
                         // Use eager loading to ensure all images load quickly
                         imageItem.innerHTML = `
                             <span class="image-position-badge">${index + 1}</span>
+                            <button class="edit-image-delete-btn" data-path="${imagePath}" title="Delete image">✕</button>
                             <img src="/listings/${listingId}/${imagePath}" 
                                  alt="Property image ${index + 1}" 
                                  loading="eager"
                                  onerror="this.parentElement.style.display='none'">
                         `;
                         
-                        // Add click handler to open image preview popup
+                        // Add click handler to open image preview popup (not on delete button)
                         imageItem.addEventListener('click', (e) => {
+                            if (e.target.closest('.edit-image-delete-btn')) return;
                             // Don't open preview if dragging
                             if (!imageItem.classList.contains('dragging')) {
                                 openImagePreview(index);
+                            }
+                        });
+                        
+                        // Delete button handler
+                        const delBtn = imageItem.querySelector('.edit-image-delete-btn');
+                        delBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const path = delBtn.dataset.path;
+                            if (imageItem.classList.contains('marked-delete')) {
+                                // Unmark
+                                imageItem.classList.remove('marked-delete');
+                                window.editImagesToDelete = window.editImagesToDelete.filter(p => p !== path);
+                            } else {
+                                // Mark for deletion
+                                imageItem.classList.add('marked-delete');
+                                if (!window.editImagesToDelete) window.editImagesToDelete = [];
+                                window.editImagesToDelete.push(path);
+                            }
+                            // Enable save button
+                            const saveBtn = document.getElementById('save-btn');
+                            if (saveBtn) {
+                                saveBtn.disabled = false;
+                                saveBtn.style.opacity = '1';
+                                saveBtn.style.cursor = 'pointer';
                             }
                         });
                         
@@ -2901,6 +2937,24 @@
             return Array.from(grid.querySelectorAll('.edit-image-item')).map(item => item.dataset.imagePath);
         }
         
+        // Toggle image delete mode on/off
+        function toggleEditDeleteMode() {
+            window.editDeleteMode = !window.editDeleteMode;
+            const btn = document.getElementById('btn-delete-images');
+            const items = document.querySelectorAll('.edit-image-item');
+            
+            if (window.editDeleteMode) {
+                btn.classList.add('active');
+                items.forEach(item => item.classList.add('delete-mode'));
+            } else {
+                btn.classList.remove('active');
+                items.forEach(item => item.classList.remove('delete-mode'));
+                // Unmark all pending deletions
+                items.forEach(item => item.classList.remove('marked-delete'));
+                window.editImagesToDelete = [];
+            }
+        }
+        
         // Handle image selection in edit modal
         function handleEditImageSelect(event) {
             const files = Array.from(event.target.files);
@@ -2957,6 +3011,22 @@
                     
                     // Refresh the images display
                     await populateEditImages(listingId);
+                    
+                    // Re-apply delete mode if it was active
+                    if (window.editDeleteMode) {
+                        const btn = document.getElementById('btn-delete-images');
+                        const items = document.querySelectorAll('.edit-image-item');
+                        btn.classList.add('active');
+                        items.forEach(item => item.classList.add('delete-mode'));
+                        // Re-mark previously marked images
+                        const toDelete = window.editImagesToDelete || [];
+                        items.forEach(item => {
+                            const delBtn = item.querySelector('.edit-image-delete-btn');
+                            if (delBtn && toDelete.includes(delBtn.dataset.path)) {
+                                item.classList.add('marked-delete');
+                            }
+                        });
+                    }
                     
                     // Enable save button since images were added
                     const saveBtn = document.getElementById('save-btn');
@@ -5494,6 +5564,12 @@
             const imagesEmpty = document.getElementById('edit-images-empty');
             if (imagesEmpty) imagesEmpty.style.display = 'none';
             
+            // Reset image delete state
+            window.editImagesToDelete = [];
+            window.editDeleteMode = false;
+            const delBtn = document.getElementById('btn-delete-images');
+            if (delBtn) delBtn.classList.remove('active');
+            
             // Reset preview images and clear preview overlay
             currentPreviewImages = [];
             currentPreviewIndex = 0;
@@ -5520,6 +5596,8 @@
                 document.querySelector('.btn-save').style.display = 'none';
                 const addImagesBtn = document.querySelector('.btn-add-images');
                 if (addImagesBtn) addImagesBtn.style.display = 'none';
+                const delImagesBtn = document.querySelector('.btn-delete-images');
+                if (delImagesBtn) delImagesBtn.style.display = 'none';
                 const dropdownContainer = document.querySelector('.dropdown-container');
                 if (dropdownContainer) dropdownContainer.style.display = 'none';
                 // Update modal title immediately
@@ -5546,6 +5624,8 @@
                 document.querySelector('.btn-save').style.display = '';
                 const addImagesBtn = document.querySelector('.btn-add-images');
                 if (addImagesBtn) addImagesBtn.style.display = '';
+                const delImagesBtn = document.querySelector('.btn-delete-images');
+                if (delImagesBtn) delImagesBtn.style.display = '';
                 // Restore modal title
                 const modalTitle = document.querySelector('.edit-modal-title');
                 if (modalTitle) {
@@ -8138,42 +8218,34 @@
          * @returns {Object} Formatted features object
          */
         function formatFeaturesForAPI(rawFeatures, errors) {
-                        
-            // Validate input structure
+            // Convert {ro: {"key": "val"}, ru: {"key": "val"}} to array format Go expects:
+            // [{lang, section, feature_key, feature_value}, ...]
+            
             if (!rawFeatures || typeof rawFeatures !== 'object') {
                 errors.push('Invalid raw features structure');
-                return { ro: {}, ru: {} };
+                return [];
             }
             
-            if (!rawFeatures.ro || !rawFeatures.ru) {
-                errors.push('Missing language sections in features');
-                return { ro: {}, ru: {} };
+            const result = [];
+            const sections = { ro: 'Caracteristici', ru: 'Характеристики' };
+            
+            for (const lang of ['ro', 'ru']) {
+                const features = rawFeatures[lang];
+                if (!features || typeof features !== 'object') continue;
+                const section = sections[lang] || 'Caracteristici';
+                for (const [key, value] of Object.entries(features)) {
+                    if (value && value.trim()) {
+                        result.push({
+                            lang: lang,
+                            section: section,
+                            feature_key: key,
+                            feature_value: value
+                        });
+                    }
+                }
             }
             
-            // Check if we have any features to format
-            const hasRoFeatures = Object.keys(rawFeatures.ro).length > 0;
-            const hasRuFeatures = Object.keys(rawFeatures.ru).length > 0;
-            
-                        
-            // Validate multilingual consistency (Requirements 1.4)
-            if (hasRoFeatures !== hasRuFeatures) {
-                console.warn('⚠️ DEBUG: Inconsistent multilingual features - some languages missing');
-                // This is a warning, not an error, as it might be intentional
-            }
-            
-            // Wrap features in sections according to backend expected format
-            const wrappedFeatures = {
-                ro: hasRoFeatures ? { 'Caracteristici': rawFeatures.ro } : {},
-                ru: hasRuFeatures ? { 'Характеристики': rawFeatures.ru } : {}
-            };
-            
-                        
-            // Validate final structure
-            if (!validateFeaturesStructure(wrappedFeatures)) {
-                errors.push('Invalid final features structure');
-            }
-            
-            return wrappedFeatures;
+            return result;
         }
         
         /**
@@ -8427,17 +8499,16 @@
                     ![...originalAmenitiesSet].every(a => newAmenitiesSet.has(a));
                 
                 if (amenitiesChanged) {
-                    // Build amenities object for both languages
-                    const amenitiesRo = {};
-                    const amenitiesRu = {};
+                    // Build amenities as array of {lang, amenity_key, amenity_value}
+                    const amenitiesArray = [];
                     selectedAmenities.forEach(amenityRo => {
-                        amenitiesRo[amenityRo] = 'Da';
+                        amenitiesArray.push({ lang: 'ro', amenity_key: amenityRo, amenity_value: 'Da' });
                         const amenityRu = COMMON_AMENITIES[amenityRo];
                         if (amenityRu) {
-                            amenitiesRu[amenityRu] = 'Да';
+                            amenitiesArray.push({ lang: 'ru', amenity_key: amenityRu, amenity_value: 'Да' });
                         }
                     });
-                    updates.amenities = { ro: amenitiesRo, ru: amenitiesRu };
+                    updates.amenities = amenitiesArray;
                     changedFields.push('amenities');
                 }
                 
@@ -8473,8 +8544,13 @@
                     return;
                 }
                 
-                // Check if features changed
-                const originalFeatures = originalData.features || {};
+                // Check if features changed (normalize both to same array format)
+                const originalFeatures = Array.isArray(originalData.features) ? originalData.features.map(f => ({
+                    lang: f.lang,
+                    section: f.section,
+                    feature_key: f.feature_key,
+                    feature_value: f.feature_value
+                })) : [];
                 const featuresChanged = JSON.stringify(featureResult.features) !== JSON.stringify(originalFeatures);
                 
                                                                                                 
@@ -8487,9 +8563,10 @@
                 
                 // Check if images were reordered
                 const imagesReordered = window.imagesReordered || false;
+                const hasDeletedImages = (window.editImagesToDelete || []).length > 0;
                 
                 // Check if anything changed
-                if (Object.keys(updates).length === 0 && !imagesReordered) {
+                if (Object.keys(updates).length === 0 && !imagesReordered && !hasDeletedImages) {
                     showNotification(
                         currentLanguage === 'ro' ? 'Nicio modificare' : 'Нет изменений',
                         false
@@ -8506,7 +8583,7 @@
                         const imageResponse = await fetch(`/api/listing/${listingId}/images/reorder`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ image_order: imageOrder })
+                            body: JSON.stringify({ order: imageOrder })
                         });
                         const imageResult = await imageResponse.json();
                         if (!imageResult.success) {
@@ -8518,9 +8595,12 @@
                     window.imagesReordered = false;
                 }
                 
-                // If only images were reordered (no other updates), handle separately
+                // If only images were reordered/deleted (no other updates), handle separately
                 if (Object.keys(updates).length === 0) {
-                    if (imageReorderSuccess) {
+                    // If there are deleted images, still send the update request
+                    if (hasDeletedImages) {
+                        // continue to the update request below
+                    } else if (imageReorderSuccess) {
                         closeEditModal();
                         sessionStorage.setItem('savedView', currentView);
                         sessionStorage.setItem('reloadingPage', 'true');
@@ -8530,7 +8610,7 @@
                     } else {
                         throw new Error('Failed to save image order');
                     }
-                    return;
+                    if (!hasDeletedImages) return;
                 }
                 
                 // Send update request for other changes
@@ -8538,7 +8618,8 @@
                     updates: updates,
                     user: 'Dashboard',
                     regenerate: true,  // Always regenerate HTML when fields are updated
-                    changed_fields: changedFields  // Send list of changed fields for journal
+                    changed_fields: changedFields,  // Send list of changed fields for journal
+                    deleted_images: window.editImagesToDelete || []
                 };
                 
                                 

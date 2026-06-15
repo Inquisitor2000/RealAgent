@@ -207,15 +207,56 @@ func (s *Server) getListing(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func (s *Server) updateListing(w http.ResponseWriter, r *http.Request, id string) {
-	var updates map[string]interface{}
-	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+	var body map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		jsonError(w, 400, "Invalid JSON")
 		return
 	}
+
+	// Frontend sends {updates: {...}, user, regenerate, changed_fields}
+	// Extract the nested updates so metadata keys don't leak into SQL
+	var updates map[string]interface{}
+	if u, ok := body["updates"]; ok {
+		if m, ok := u.(map[string]interface{}); ok {
+			updates = m
+		} else {
+			jsonError(w, 400, "Invalid updates format")
+			return
+		}
+	} else {
+		updates = body
+	}
+
 	user := r.Header.Get("X-User-Name")
 	if user == "" {
 		user = "api"
+		// Fallback: use user from body if present
+		if u, ok := body["user"]; ok {
+			if us, ok := u.(string); ok && us != "" {
+				user = us
+			}
+		}
 	}
+
+	// Handle image deletions before update
+	if di, ok := body["deleted_images"]; ok {
+		if deleted, ok := di.([]interface{}); ok {
+			for _, d := range deleted {
+				if path, ok := d.(string); ok && path != "" {
+					// Delete from database
+					if err := database.DeleteListingImage(s.DB, id, path); err != nil {
+						log.Printf("  ⚠️ Failed to delete image %s: %v", path, err)
+					}
+					// Delete file from disk
+					fullPath := filepath.Join(s.ListingsDir, id, path)
+					if err := os.Remove(fullPath); err != nil && !os.IsNotExist(err) {
+						log.Printf("  ⚠️ Failed to remove image file %s: %v", fullPath, err)
+					}
+				}
+			}
+		}
+	}
+
 	if err := database.UpdateListing(s.DB, id, updates, user); err != nil {
 		log.Printf("update error: %v", err)
 		jsonError(w, 500, "Failed to update listing")
@@ -783,7 +824,7 @@ func (s *Server) HandleUploadImages(w http.ResponseWriter, r *http.Request) {
 	position := len(images)
 	for _, name := range uploaded {
 		position++
-		database.AddListingImage(s.DB, listingID, name, name, position)
+		database.AddListingImage(s.DB, listingID, name, "images/"+name, position)
 	}
 
 	jsonResponse(w, 200, map[string]interface{}{

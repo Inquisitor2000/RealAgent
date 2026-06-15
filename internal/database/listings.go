@@ -441,15 +441,25 @@ func UpdateListing(db *sql.DB, id string, updates map[string]interface{}, user s
 	}
 
 	// Update features if provided
-	if features, ok := updates["features"]; ok {
-		if err := replaceListingFeatures(db, id, features.([]ListingFeatureInput)); err != nil {
+	if featuresRaw, ok := updates["features"]; ok {
+		data, _ := json.Marshal(featuresRaw)
+		var features []ListingFeatureInput
+		if err := json.Unmarshal(data, &features); err != nil {
+			return fmt.Errorf("unmarshal features: %w", err)
+		}
+		if err := replaceListingFeatures(db, id, features); err != nil {
 			return err
 		}
 	}
 
 	// Update amenities if provided
-	if amenities, ok := updates["amenities"]; ok {
-		if err := replaceListingAmenities(db, id, amenities.([]ListingAmenityInput)); err != nil {
+	if amenitiesRaw, ok := updates["amenities"]; ok {
+		data, _ := json.Marshal(amenitiesRaw)
+		var amenities []ListingAmenityInput
+		if err := json.Unmarshal(data, &amenities); err != nil {
+			return fmt.Errorf("unmarshal amenities: %w", err)
+		}
+		if err := replaceListingAmenities(db, id, amenities); err != nil {
 			return err
 		}
 	}
@@ -1556,6 +1566,12 @@ func AddListingImage(db *sql.DB, listingID, imageURL, localPath string, position
 		`INSERT INTO listing_images (listing_id, image_url, local_path, position) VALUES (?, ?, ?, ?)
 		 ON CONFLICT(listing_id, position) DO UPDATE SET image_url=excluded.image_url, local_path=excluded.local_path`,
 		listingID, imageURL, localPath, position)
+	return err
+}
+
+// DeleteListingImage deletes a single image by local_path from a listing.
+func DeleteListingImage(db *sql.DB, listingID, localPath string) error {
+	_, err := db.Exec("DELETE FROM listing_images WHERE listing_id = ? AND local_path = ?", listingID, localPath)
 	return err
 }
 

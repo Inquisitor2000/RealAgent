@@ -5618,7 +5618,9 @@ body.day-theme .leaflet-popup-tip {
 .edit-images-actions {
     margin-bottom: 12px;
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
 }
 
 .btn-add-images {
@@ -5723,6 +5725,72 @@ body.day-theme .leaflet-popup-tip {
     justify-content: center;
     z-index: 10;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Delete image overlay button (red X circle top-right) */
+.edit-image-delete-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #dc2626;
+    color: white;
+    border: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.15s ease, background 0.15s ease;
+    padding: 0;
+    line-height: 1;
+}
+.edit-image-delete-btn:hover {
+    transform: scale(1.2);
+    background: #ef4444;
+}
+.edit-image-item.delete-mode .edit-image-delete-btn {
+    display: flex;
+}
+.edit-image-item.marked-delete {
+    opacity: 0.4;
+}
+.edit-image-item.marked-delete .edit-image-delete-btn {
+    opacity: 1;
+    background: #991b1b;
+}
+
+/* Delete images button */
+.btn-delete-images {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #c0392b;
+    background: #e74c3c;
+    color: white;
+}
+.btn-delete-images:hover {
+    background: #c0392b;
+    border-color: #a93226;
+}
+.btn-delete-images.active {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+.btn-delete-images.active:hover {
+    background: #b91c1c;
+    border-color: #991b1b;
 }
 
 .edit-image-item img {
@@ -6351,6 +6419,18 @@ body.day-theme .amenity-item:hover {
     
     .checkbox-grid.has-long-items {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .edit-images-actions .btn-add-images,
+    .edit-images-actions .btn-delete-images {
+        max-width: 48%;
+        white-space: normal;
+        text-align: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        padding: 8px 10px;
     }
 }
 
