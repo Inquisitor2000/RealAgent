@@ -4826,9 +4826,9 @@ body.day-theme .leaflet-popup-tip {
     display: flex;
     align-items: center;
     min-height: 50px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .log-excel-cell:nth-child(4n) {
@@ -7070,4 +7070,69 @@ body.day-theme .amenity-item:hover {
 
 #address-map-container .leaflet-control-zoom a:hover {
     background: var(--bg-card-hover);
+}
+
+/* Listing view log section */
+.listing-log-content {
+    padding: 12px 0;
+}
+
+.listing-log-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.listing-log-item {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.03);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.listing-log-time {
+    font-size: 0.8rem;
+    opacity: 0.6;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.listing-log-sep {
+    opacity: 0.3;
+    flex-shrink: 0;
+    margin: 0 2px;
+}
+
+.listing-log-action {
+    font-weight: 600;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.listing-log-comment {
+    opacity: 0.8;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.listing-log-empty {
+    text-align: center;
+    opacity: 0.5;
+    padding: 16px;
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+#view-log-section .form-section-title {
+    padding-top: 20px;
+    padding-bottom: 20px;
 }

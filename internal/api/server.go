@@ -39,8 +39,11 @@ type Server struct {
 }
 
 // New creates a new API server.
-func New(db *sql.DB, scraper ScraperInterface) *Server {
-	return &Server{DB: db, ListingsDir: "Listings", Scraper: scraper}
+func New(db *sql.DB, scraper ScraperInterface, listingsDir string) *Server {
+	if listingsDir == "" {
+		listingsDir = "Listings"
+	}
+	return &Server{DB: db, ListingsDir: listingsDir, Scraper: scraper}
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────
@@ -191,6 +194,13 @@ func (s *Server) getListing(w http.ResponseWriter, r *http.Request, id string) {
 		"amenities":           amenitiesGrouped,
 	}
 
+	// Fetch journal entries for this listing (for detail view log)
+	if journalEntries, jErr := database.GetJournalEntries(s.DB, id, "", 50, 0); jErr == nil {
+		listingMap["journal"] = journalEntries
+	} else {
+		listingMap["journal"] = []database.JournalEntry{}
+	}
+
 	// map_data: transform ListingMap (latitude/longitude) → frontend format (lat/lng)
 	if listing.Map != nil {
 		listingMap["map_data"] = map[string]interface{}{
@@ -272,14 +282,72 @@ func (s *Server) updateListing(w http.ResponseWriter, r *http.Request, id string
 		jsonError(w, 500, "Failed to update listing")
 		return
 	}
+
+	// Log edit to journal (if changed_fields provided)
+	if changedRaw, ok := body["changed_fields"]; ok {
+		if changedList, ok := changedRaw.([]interface{}); ok && len(changedList) > 0 {
+			changedStrs := make([]string, 0, len(changedList))
+			for _, c := range changedList {
+				if s, ok := c.(string); ok {
+					changedStrs = append(changedStrs, s)
+				}
+			}
+			if len(changedStrs) > 0 {
+				changesSummary := strings.Join(changedStrs, ", ")
+				if _, jErr := database.CreateJournalEntry(s.DB, id, "log", "edited", changesSummary, user, "listing,edit"); jErr != nil {
+					log.Printf("⚠️ Failed to create journal entry for listing edit %s: %v", id, jErr)
+				}
+			}
+		}
+	}
+
 	jsonResponse(w, 200, map[string]bool{"success": true})
 }
 
 func (s *Server) deleteListing(w http.ResponseWriter, r *http.Request, id string) {
+	// Fetch listing info before deletion (for journal + folder path)
+	listing, err := database.GetListing(s.DB, id)
+	if err != nil {
+		jsonError(w, 500, "Failed to fetch listing for deletion")
+		return
+	}
+	if listing == nil {
+		jsonError(w, 404, "Listing not found")
+		return
+	}
+
+	title := listing.TitleRO
+	if title == "" {
+		title = listing.TitleRU
+	}
+	if title == "" {
+		title = id
+	}
+
+	// Delete folder from disk (images, HTML, PWA files)
+	folderPath := filepath.Join(s.ListingsDir, id)
+	if _, statErr := os.Stat(folderPath); statErr == nil {
+		if rmErr := os.RemoveAll(folderPath); rmErr != nil {
+			log.Printf("⚠️ Failed to remove listing folder %s: %v", folderPath, rmErr)
+			// Non-fatal — continue
+		}
+	}
+
+	// Log deletion to journal (BEFORE DB delete — FK constraint)
+	user := r.Header.Get("X-User-Name")
+	if user == "" {
+		user = "api"
+	}
+	if _, jErr := database.CreateJournalEntry(s.DB, id, "log", "deletion", "", user, "listing,deletion"); jErr != nil {
+		log.Printf("⚠️ Failed to create journal entry for listing deletion %s: %v", id, jErr)
+	}
+
+	// Delete from DB (cascade all related tables)
 	if err := database.DeleteListing(s.DB, id); err != nil {
 		jsonError(w, 500, "Failed to delete listing")
 		return
 	}
+
 	jsonSuccess(w, nil)
 }
 
@@ -304,6 +372,15 @@ func (s *Server) HandleCreateListing(w http.ResponseWriter, r *http.Request) {
 				log.Printf("⚠️ POI fetch after create failed for %s: %v", id, err)
 			}
 		}()
+	}
+
+	// Log creation to journal
+	user := r.Header.Get("X-User-Name")
+	if user == "" {
+		user = "api"
+	}
+	if _, jErr := database.CreateJournalEntry(s.DB, id, "log", "created", "", user, "listing,creation"); jErr != nil {
+		log.Printf("⚠️ Failed to create journal entry for listing creation %s: %v", id, jErr)
 	}
 
 	jsonSuccess(w, map[string]interface{}{"listing_id": id})
@@ -343,6 +420,20 @@ func (s *Server) HandleToggleSold(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, 500, "Failed to toggle sold")
 		return
 	}
+
+	// Log to journal
+	action := "sold"
+	if status != "yes" {
+		action = "available"
+	}
+	user := r.Header.Get("X-User-Name")
+	if user == "" {
+		user = "api"
+	}
+	if _, jErr := database.CreateJournalEntry(s.DB, id, "log", action, "", user, "listing,toggle"); jErr != nil {
+		log.Printf("⚠️ Failed to create journal entry for toggle-sold %s: %v", id, jErr)
+	}
+
 	jsonSuccess(w, map[string]interface{}{"sold": status})
 }
 
@@ -358,6 +449,20 @@ func (s *Server) HandleToggleRented(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, 500, "Failed to toggle rented")
 		return
 	}
+
+	// Log to journal
+	action := "rented"
+	if status != "yes" {
+		action = "available"
+	}
+	user := r.Header.Get("X-User-Name")
+	if user == "" {
+		user = "api"
+	}
+	if _, jErr := database.CreateJournalEntry(s.DB, id, "log", action, "", user, "listing,toggle"); jErr != nil {
+		log.Printf("⚠️ Failed to create journal entry for toggle-rented %s: %v", id, jErr)
+	}
+
 	jsonSuccess(w, map[string]interface{}{"rented": status})
 }
 
@@ -526,126 +631,6 @@ func (s *Server) HandleChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	jsonResponse(w, 200, map[string]bool{"success": true})
-}
-
-// ─── Journal ───────────────────────────────────────────────────────
-
-// HandleJournal lists or creates journal entries (GET, POST /api/journal).
-func (s *Server) HandleJournal(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		s.listJournal(w, r)
-	case http.MethodPost:
-		s.createJournal(w, r)
-	default:
-		jsonError(w, 405, "Method not allowed")
-	}
-}
-
-func (s *Server) listJournal(w http.ResponseWriter, r *http.Request) {
-	listingID := r.URL.Query().Get("listing_id")
-	entryType := r.URL.Query().Get("entry_type")
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
-
-	entries, err := database.GetJournalEntries(s.DB, listingID, entryType, limit, offset)
-	if err != nil {
-		jsonError(w, 500, "Failed to fetch journal")
-		return
-	}
-	if entries == nil {
-		entries = []database.JournalEntry{}
-	}
-	jsonSuccess(w, map[string]interface{}{
-		"entries": entries,
-		"count":   len(entries),
-	})
-}
-
-func (s *Server) createJournal(w http.ResponseWriter, r *http.Request) {
-	var body struct {
-		ListingID string `json:"listing_id"`
-		EntryType string `json:"entry_type"`
-		Title     string `json:"title"`
-		Content   string `json:"content"`
-		Tags      string `json:"tags"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		jsonError(w, 400, "Invalid JSON")
-		return
-	}
-	user := r.Header.Get("X-User-Name")
-	entry, err := database.CreateJournalEntry(s.DB, body.ListingID, body.EntryType, body.Title, body.Content, user, body.Tags)
-	if err != nil {
-		jsonError(w, 500, "Failed to create journal entry")
-		return
-	}
-	jsonSuccess(w, map[string]interface{}{"entry": entry})
-}
-
-// HandleJournalEntry handles single journal entry (PUT, DELETE /api/journal/{id}).
-func (s *Server) HandleJournalEntry(w http.ResponseWriter, r *http.Request) {
-	// Extract ID from path
-	path := r.URL.Path
-	idStr := strings.TrimPrefix(path, "/api/journal/")
-	// Handle /api/journal/clear
-	if idStr == "clear" {
-		s.clearJournal(w, r)
-		return
-	}
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		jsonError(w, 400, "Invalid journal entry ID")
-		return
-	}
-
-	switch r.Method {
-	case http.MethodPut:
-		s.updateJournal(w, r, id)
-	case http.MethodDelete:
-		s.deleteJournal(w, r, id)
-	default:
-		jsonError(w, 405, "Method not allowed")
-	}
-}
-
-func (s *Server) updateJournal(w http.ResponseWriter, r *http.Request, id int) {
-	var body struct {
-		Title     *string `json:"title"`
-		Content   *string `json:"content"`
-		EntryType *string `json:"entry_type"`
-		Tags      *string `json:"tags"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		jsonError(w, 400, "Invalid JSON")
-		return
-	}
-	if err := database.UpdateJournalEntry(s.DB, id, body.Title, body.Content, body.EntryType, body.Tags); err != nil {
-		jsonError(w, 500, "Failed to update journal entry")
-		return
-	}
-	jsonResponse(w, 200, map[string]bool{"success": true})
-}
-
-func (s *Server) deleteJournal(w http.ResponseWriter, r *http.Request, id int) {
-	if err := database.DeleteJournalEntry(s.DB, id); err != nil {
-		jsonError(w, 500, "Failed to delete journal entry")
-		return
-	}
-	jsonResponse(w, 200, map[string]bool{"success": true})
-}
-
-func (s *Server) clearJournal(w http.ResponseWriter, r *http.Request) {
-	age := r.URL.Query().Get("age")
-	if age == "" {
-		age = "all"
-	}
-	count, err := database.ClearJournalEntries(s.DB, age)
-	if err != nil {
-		jsonError(w, 500, "Failed to clear journal")
-		return
-	}
-	jsonSuccess(w, map[string]interface{}{"deleted": count})
 }
 
 // ─── POI ───────────────────────────────────────────────────────────
@@ -982,6 +967,18 @@ func (s *Server) HandleScrape(w http.ResponseWriter, r *http.Request) {
 		jsonResponse(w, 422, result)
 		return
 	}
+
+	// Log scrape to journal
+	if result.ListingID != "" {
+		user := r.Header.Get("X-User-Name")
+		if user == "" {
+			user = "api"
+		}
+		if _, jErr := database.CreateJournalEntry(s.DB, result.ListingID, "log", "scraped", body.URL, user, "listing,scrape"); jErr != nil {
+			log.Printf("⚠️ Failed to create journal entry for scrape %s: %v", result.ListingID, jErr)
+		}
+	}
+
 	jsonResponse(w, 200, result)
 }
 

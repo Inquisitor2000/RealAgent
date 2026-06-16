@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -114,7 +115,7 @@ func InitSchema(db *sql.DB) error {
 			updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
 			user TEXT,
 			tags TEXT,
-			FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE
+			FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE SET NULL
 		)`,
 		`CREATE TABLE IF NOT EXISTS geocode_cache (
 			key TEXT PRIMARY KEY,
@@ -159,6 +160,75 @@ func InitSchema(db *sql.DB) error {
 			return fmt.Errorf("index: %w\nSQL: %s", err, idx)
 		}
 	}
+	if err := migrateJournalFK(db); err != nil {
+		return fmt.Errorf("migrate journal FK: %w", err)
+	}
+	return nil
+}
+
+// migrateJournalFK upgrades journal_entries FK from ON DELETE CASCADE to ON DELETE SET NULL
+// so audit log entries survive listing deletion.
+func migrateJournalFK(db *sql.DB) error {
+	var sql string
+	err := db.QueryRow("SELECT sql FROM sqlite_master WHERE type='table' AND name='journal_entries'").Scan(&sql)
+	if err != nil {
+		return nil // table doesn't exist yet — new schema from CREATE above is correct
+	}
+	if !strings.Contains(sql, "ON DELETE CASCADE") {
+		return nil // already migrated
+	}
+	log.Println("🔄 Migrating journal_entries FK from CASCADE → SET NULL...")
+	if _, err := db.Exec("PRAGMA foreign_keys=OFF"); err != nil {
+		return err
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		db.Exec("PRAGMA foreign_keys=ON")
+		return err
+	}
+	_, err = tx.Exec(`CREATE TABLE journal_entries_migrate (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		listing_id TEXT,
+		entry_type TEXT CHECK(entry_type IN ('log', 'comment', 'note')) DEFAULT 'log',
+		title TEXT,
+		content TEXT,
+		created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+		updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+		user TEXT,
+		tags TEXT,
+		FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE SET NULL
+	)`)
+	if err != nil {
+		tx.Rollback()
+		db.Exec("PRAGMA foreign_keys=ON")
+		return err
+	}
+	if _, err = tx.Exec("INSERT INTO journal_entries_migrate SELECT * FROM journal_entries"); err != nil {
+		tx.Rollback()
+		db.Exec("PRAGMA foreign_keys=ON")
+		return err
+	}
+	if _, err = tx.Exec("DROP TABLE journal_entries"); err != nil {
+		tx.Rollback()
+		db.Exec("PRAGMA foreign_keys=ON")
+		return err
+	}
+	if _, err = tx.Exec("ALTER TABLE journal_entries_migrate RENAME TO journal_entries"); err != nil {
+		tx.Rollback()
+		db.Exec("PRAGMA foreign_keys=ON")
+		return err
+	}
+	// Recreate indexes on the new table
+	_, _ = tx.Exec("CREATE INDEX IF NOT EXISTS idx_journal_listing ON journal_entries(listing_id)")
+	_, _ = tx.Exec("CREATE INDEX IF NOT EXISTS idx_journal_created ON journal_entries(created_at DESC)")
+	if err = tx.Commit(); err != nil {
+		db.Exec("PRAGMA foreign_keys=ON")
+		return err
+	}
+	if _, err := db.Exec("PRAGMA foreign_keys=ON"); err != nil {
+		return err
+	}
+	log.Println("✅ journal_entries FK migration complete")
 	return nil
 }
 

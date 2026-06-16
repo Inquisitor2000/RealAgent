@@ -8,8 +8,7 @@ from PIL import Image
 # Translation module for property features
 from Helper.translations import PROPERTY_FEATURE_TRANSLATIONS, ROMANIAN_TO_RUSSIAN_FEATURES
 # PWA manifest generation
-sys.path.append(os.path.join(os.path.dirname(__file__), 'pwa'))
-from manifest_generator import create_pwa_manifest
+from pwa.manifest_generator import create_pwa_manifest
 # Helper module for address parsing and geocoding
 from Helper.geoguess import (
     detect_cyrillic_text,

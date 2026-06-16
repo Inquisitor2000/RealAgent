@@ -467,13 +467,28 @@ func UpdateListing(db *sql.DB, id string, updates map[string]interface{}, user s
 	return nil
 }
 
-// DeleteListing deletes a listing (cascades to all related tables).
+// DeleteListing deletes a listing and all related data in a transaction.
+// Deletes: listing_images, listing_features, listing_amenities, listing_map,
+// listing_pois, and the listing itself. Does NOT delete disk files or journal entries.
 func DeleteListing(db *sql.DB, id string) error {
-	_, err := db.Exec("DELETE FROM listings WHERE id = ?", id)
+	tx, err := db.Begin()
 	if err != nil {
+		return fmt.Errorf("delete begin tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	tables := []string{"listing_images", "listing_features", "listing_amenities", "listing_map", "listing_pois"}
+	for _, table := range tables {
+		if _, err := tx.Exec(fmt.Sprintf("DELETE FROM %s WHERE listing_id = ?", table), id); err != nil {
+			return fmt.Errorf("delete %s for %s: %w", table, id, err)
+		}
+	}
+
+	if _, err := tx.Exec("DELETE FROM listings WHERE id = ?", id); err != nil {
 		return fmt.Errorf("delete listing %s: %w", id, err)
 	}
-	return nil
+
+	return tx.Commit()
 }
 
 // ToggleSold toggles the sold field.

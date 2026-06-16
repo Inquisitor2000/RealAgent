@@ -132,6 +132,32 @@ func getText(n *html.Node) string {
 	return sb.String()
 }
 
+// getTextExcluding returns text content of a node, skipping children with any
+// of the given class names (e.g., old-price/discount elements in a price block).
+func getTextExcluding(n *html.Node, excludeClasses ...string) string {
+	var sb strings.Builder
+	var recurse func(*html.Node)
+	recurse = func(node *html.Node) {
+		if node.Type == html.TextNode {
+			sb.WriteString(node.Data)
+		}
+		for c := node.FirstChild; c != nil; c = c.NextSibling {
+			skip := false
+			for _, cls := range excludeClasses {
+				if hasClass(c, cls) {
+					skip = true
+					break
+				}
+			}
+			if !skip {
+				recurse(c)
+			}
+		}
+	}
+	recurse(n)
+	return sb.String()
+}
+
 func getInnerHTML(n *html.Node) string {
 	var buf bytes.Buffer
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
@@ -248,7 +274,8 @@ func parsePriceMap(priceContainer *html.Node) map[string]string {
 		return hasClass(n, "styles_price__main__kz3DX")
 	})
 	if mainTag != nil {
-		text := strings.TrimSpace(getText(mainTag))
+		// Use getTextExcluding to skip old-price and discount child elements
+		text := strings.TrimSpace(getTextExcluding(mainTag, "styles_oldprice__3xb_H"))
 		text = strings.ReplaceAll(text, "\u00a0", " ") // Replace non-breaking spaces
 
 		re := regexp.MustCompile(`([\d\s]+)\s*(\D+)$`)

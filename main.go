@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -410,12 +411,6 @@ func registerRoutes(mux *http.ServeMux, apiSrv *api.Server) {
 	mux.Handle("GET /api/auth/me", apiAuthMiddleware(apiSrv.HandleAuthMe))
 	mux.Handle("POST /api/auth/change-password", apiAuthMiddleware(apiSrv.HandleChangePassword))
 
-	// Journal — use wildcard path for ID-based routes
-	mux.HandleFunc("GET /api/journal", apiSrv.HandleJournal)
-	mux.HandleFunc("POST /api/journal", apiSrv.HandleJournal)
-	mux.HandleFunc("PUT /api/journal/{id...}", apiSrv.HandleJournalEntry)
-	mux.HandleFunc("DELETE /api/journal/{id...}", apiSrv.HandleJournalEntry)
-
 	// QR code
 	mux.HandleFunc("GET /api/listing/{id}/qr", apiSrv.HandleQR)
 
@@ -458,9 +453,21 @@ func registerRoutes(mux *http.ServeMux, apiSrv *api.Server) {
 // ─── Main ──────────────────────────────────────────────────────────
 
 func main() {
+	// Determine binary directory for default paths (handles double-click scenarios
+	// where CWD is the home directory, not the binary location).
+	execPath, err := os.Executable()
+	if err != nil {
+		log.Fatalf("Failed to get executable path: %v", err)
+	}
+	binDir := filepath.Dir(execPath)
+
 	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
-		dbPath = "Mainframe.db"
+		dbPath = filepath.Join(binDir, "Mainframe.db")
+	}
+	listingsDir := os.Getenv("LISTINGS_DIR")
+	if listingsDir == "" {
+		listingsDir = filepath.Join(binDir, "Listings")
 	}
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -468,7 +475,6 @@ func main() {
 	}
 
 	// Open database
-	var err error
 	db, err = database.OpenDB(dbPath)
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
@@ -492,10 +498,10 @@ func main() {
 	log.Printf("✅ Templates loaded")
 
 	// Create scraper engine
-	scr := scraper.New(nil, db, "Listings")
+	scr := scraper.New(nil, db, listingsDir)
 
 	// Create API server
-	apiSrv := api.New(db, scr)
+	apiSrv := api.New(db, scr, listingsDir)
 
 	// Register routes
 	mux := http.NewServeMux()

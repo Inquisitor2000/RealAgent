@@ -148,7 +148,6 @@
                 <div class="navbar-tabs">
                     <button class="nav-tab" onclick="switchView('listings')" data-i18n="nav-listings">Proprietăți</button>
                     <button class="nav-tab" onclick="switchView('statistics')" data-i18n="nav-statistics">Statistici</button>
-                    <button class="nav-tab" onclick="switchView('log')" data-i18n="nav-log">Jurnal</button>
                 </div>
                 
                 <div class="navbar-right">
@@ -853,49 +852,6 @@
             </div>
         </div>
         
-        <div id="log-view" class="view">
-            <div id="log-loading" class="loading">
-                <div class="loading-spinner"></div>
-                <p data-i18n="log-loading">Se încarcă jurnalul...</p>
-            </div>
-            
-            <div id="log-content" style="display: none;">
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px; position: relative;">
-                    <div class="clear-logs-dropdown">
-                        <button class="btn-clear-logs" onclick="toggleClearLogsDropdown()" data-i18n="clear-logs">Șterge Jurnalul</button>
-                        <div class="clear-logs-dropdown-menu" id="clear-logs-dropdown-menu">
-                            <div class="clear-logs-dropdown-item" onclick="clearLogs('1week')">
-                                <span data-i18n="clear-logs-1week">Mai vechi de 1 săptămână</span>
-                            </div>
-                            <div class="clear-logs-dropdown-item" onclick="clearLogs('1month')">
-                                <span data-i18n="clear-logs-1month">Mai vechi de 1 lună</span>
-                            </div>
-                            <div class="clear-logs-dropdown-item" onclick="clearLogs('all')">
-                                <span data-i18n="clear-logs-all">Toate</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="log-excel-container" id="log-excel-container">
-                    <!-- Header Row -->
-                    <div class="log-excel-header" data-i18n="log-col-listing">ID Proprietate</div>
-                    <div class="log-excel-header" data-i18n="log-col-action">Acțiune</div>
-                    <div class="log-excel-header" data-i18n="log-col-comment">Comentariu</div>
-                    <div class="log-excel-header" data-i18n="log-col-time">Timp</div>
-                    
-                    <!-- Data Rows will be inserted here dynamically -->
-                </div>
-                
-                <div id="log-empty" class="empty-state" style="display: none;">
-                    <div class="empty-state-icon">
-                        <div class="empty-icon-circle">
-                            <div class="empty-icon-inner"></div>
-                        </div>
-                    </div>
-                    <h2 data-i18n="log-empty">Nicio activitate încă</h2>
-                </div>
-            </div>
-        </div>
     </div>
     
     <div id="notification" class="notification"></div>
@@ -1075,6 +1031,21 @@
                             <div class="view-poi-toolbar" id="view-poi-toolbar">
                                 <!-- POI buttons generated dynamically based on database -->
                             </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Listing Log Section (Read-only mode only) -->
+                <div class="form-section view-map-full-width" id="view-log-section" style="display: none;">
+                    <h3 class="form-section-title" data-i18n="view-log-title">
+                        Jurnal Activitate
+                    </h3>
+                    <div class="section-content listing-log-content" id="listing-log-content">
+                        <div class="listing-log-entries" id="listing-log-entries">
+                            <!-- Populated dynamically from listing.journal -->
+                        </div>
+                        <div class="listing-log-empty" id="listing-log-empty" style="display: none;">
+                            <p data-i18n="log-empty">Nicio activitate încă</p>
                         </div>
                     </div>
                 </div>
@@ -1558,7 +1529,7 @@
         
         const translations = {
             'ro': {
-                'nav-listings': 'Proprietăți', 'nav-statistics': 'Statistici', 'nav-log': 'Jurnal',
+                'nav-listings': 'Proprietăți', 'nav-statistics': 'Statistici',
                 'listings-title': 'Proprietăți', 'listings-subtitle': 'Explorează toate proprietățile disponibile',
                 'empty-title': 'Nicio proprietate găsită', 'empty-subtitle': 'Adaugă prima proprietate folosind butonul de mai sus!',
                 'view-grid': 'Grilă', 'view-list': 'Listă',
@@ -1738,16 +1709,12 @@
                 'sort-label': 'Sortare:', 'sort-newest': 'Cel mai nou', 'sort-oldest': 'Cel mai vechi', 
                 'sort-price-high': 'Preț: Mare → Mic', 'sort-price-low': 'Preț: Mic → Mare',
                 'showing-count': 'Se afișează {{"{{"}}count}} proprietăți',
-                'log-title': 'Jurnal de Activitate', 'log-subtitle': 'Istoric complet al acțiunilor',
-                'log-loading': 'Se încarcă jurnalul...', 'log-empty': 'Nicio activitate încă',
-                'log-action-added': 'Proprietate adăugată', 'log-action-sold': 'Marcat ca vândut', 'log-action-rented': 'Marcat ca închiriat',
-                'log-action-available': 'Marcat ca disponibil', 'log-action-sync': 'Sincronizare', 'log-action-edited': 'Modificat',
-                'log-col-time': 'Timp', 'log-col-action': 'Acțiune', 'log-col-listing': 'ID Proprietate', 'log-col-comment': 'Comentariu',
-                'clear-logs': 'Șterge Jurnalul',
-                'clear-logs-1week': 'Mai vechi de 1 săptămână',
-                'clear-logs-1month': 'Mai vechi de 1 lună',
-                'clear-logs-all': 'Toate',
                 'view-modal-title': 'Vizualizare Proprietate',
+                'view-log-title': 'Jurnal Activitate',
+                'log-action-created': 'Creat',
+                'log-action-scraped': 'Creat (999.md)',
+                'log-action-deleted': 'Șters',
+                'log-action-price': 'Schimbare Preț',
                 'view-price': 'Preț', 'view-address': 'Adresă', 'view-contact': 'Contact',
                 'view-open-page': 'Deschide Pagina', 'view-close': 'Închide',
                 'edit-modal-title': 'Editează Proprietatea', 'edit-title-ro': 'Titlu în Română', 'edit-title-ru': 'Titlu în Rusă',
@@ -1822,7 +1789,7 @@
                 'view-map-title': 'Locație'
             },
             'ru': {
-                'nav-listings': 'Объекты', 'nav-statistics': 'Статистика', 'nav-log': 'Журнал',
+                'nav-listings': 'Объекты', 'nav-statistics': 'Статистика',
                 'listings-title': 'Объекты', 'listings-subtitle': 'Просмотр всех доступных объектов',
                 'empty-title': 'Объектов не найдено', 'empty-subtitle': 'Добавьте первый объект используя кнопку выше!',
                 'view-grid': 'Сетка', 'view-list': 'Список',
@@ -2002,16 +1969,12 @@
                 'sort-label': 'Сортировка:', 'sort-newest': 'Новейшие', 'sort-oldest': 'Старейшие',
                 'sort-price-high': 'Цена: Высокая → Низкая', 'sort-price-low': 'Цена: Низкая → Высокая',
                 'showing-count': 'Показано {{"{{"}}count}} объектов',
-                'log-title': 'Журнал Активности', 'log-subtitle': 'Полная история действий',
-                'log-loading': 'Загрузка журнала...', 'log-empty': 'Пока нет активности',
-                'log-action-added': 'Объект добавлен', 'log-action-sold': 'Отмечено как продано', 'log-action-rented': 'Отмечено как сдано',
-                'log-action-available': 'Отмечено как доступно', 'log-action-sync': 'Синхронизация', 'log-action-edited': 'Изменено',
-                'log-col-time': 'Время', 'log-col-action': 'Действие', 'log-col-listing': 'ID Объекта', 'log-col-comment': 'Комментарий',
-                'clear-logs': 'Очистить Журнал',
-                'clear-logs-1week': 'Старше 1 недели',
-                'clear-logs-1month': 'Старше 1 месяца',
-                'clear-logs-all': 'Все',
                 'view-modal-title': 'Просмотр Объекта',
+                'view-log-title': 'Журнал активности',
+                'log-action-created': 'Создан',
+                'log-action-scraped': 'Создан (999.md)',
+                'log-action-deleted': 'Удален',
+                'log-action-price': 'Изменение Цены',
                 'view-price': 'Цена', 'view-address': 'Адрес', 'view-contact': 'Контакт',
                 'view-open-page': 'Открыть Страницу', 'view-close': 'Закрыть',
                 'edit-modal-title': 'Редактировать Объект', 'edit-title-ro': 'Название на Румынском', 'edit-title-ru': 'Название на Русском',
@@ -2097,7 +2060,6 @@
             localStorage.setItem('dashboardActiveTab', viewName);
             
             if (viewName === 'statistics' && !statisticsData) loadStatistics();
-            if (viewName === 'log') loadLogs();
         }
         
         function switchToView(viewName) {
@@ -2117,285 +2079,8 @@
             }
             
             if (viewName === 'statistics' && !statisticsData) loadStatistics();
-            if (viewName === 'log') loadLogs();
         }
         
-        // Log functions
-        async function addLogEntry(actionType, listingId = null, details = null) {
-            try {
-                const response = await fetch('/api/journal', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: actionType,
-                        content: details || '',
-                        entry_type: 'log',
-                        listing_id: listingId
-                    })
-                });
-                const result = await response.json();
-                if (!result.success) {
-                    console.error('Failed to add journal entry:', result.error);
-                }
-            } catch (error) {
-                console.error('Error adding journal entry:', error);
-            }
-        }
-        
-        function toggleClearLogsDropdown() {
-            const dropdown = document.getElementById('clear-logs-dropdown-menu');
-            dropdown.classList.toggle('show');
-        }
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const dropdown = document.getElementById('clear-logs-dropdown-menu');
-            const button = event.target.closest('.btn-clear-logs');
-            const dropdownItem = event.target.closest('.clear-logs-dropdown-item');
-            
-            if (!button && !dropdownItem && dropdown) {
-                dropdown.classList.remove('show');
-            }
-        });
-        
-        async function clearLogs(age) {
-            // Close dropdown
-            const dropdown = document.getElementById('clear-logs-dropdown-menu');
-            if (dropdown) {
-                dropdown.classList.remove('show');
-            }
-            
-            // Prepare confirmation message based on age
-            let confirmMsg;
-            if (age === '1week') {
-                confirmMsg = currentLanguage === 'ro' 
-                    ? 'Sigur doriți să ștergeți înregistrările mai vechi de 1 săptămână?' 
-                    : 'Вы уверены, что хотите удалить записи старше 1 недели?';
-            } else if (age === '1month') {
-                confirmMsg = currentLanguage === 'ro' 
-                    ? 'Sigur doriți să ștergeți înregistrările mai vechi de 1 lună?' 
-                    : 'Вы уверены, что хотите удалить записи старше 1 месяца?';
-            } else {
-                confirmMsg = currentLanguage === 'ro' 
-                    ? 'Sigur doriți să ștergeți toate înregistrările din jurnal?' 
-                    : 'Вы уверены, что хотите удалить все записи журнала?';
-            }
-            
-            if (!confirm(confirmMsg)) {
-                return;
-            }
-            
-            // Save current view to restore after reload
-            sessionStorage.setItem('savedView', currentView);
-            
-            // Show full-page loading overlay
-            const pageLoadingOverlay = document.getElementById('page-loading-overlay');
-            if (pageLoadingOverlay) {
-                pageLoadingOverlay.classList.add('active');
-            }
-            
-            // Wait for overlay to reach full opacity (1.5s) before proceeding
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            try {
-                const response = await fetch(`/api/journal/clear?age=${age}`, {
-                    method: 'DELETE'
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Set flag to keep overlay visible during reload
-                    sessionStorage.setItem('reloadingPage', 'true');
-                    
-                    // Reload page immediately
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 100);
-                } else {
-                    throw new Error(data.error || 'Failed to clear logs');
-                }
-            } catch (error) {
-                console.error('Error clearing logs:', error);
-                
-                // Hide overlay on error
-                if (pageLoadingOverlay) {
-                    pageLoadingOverlay.classList.remove('active');
-                }
-                
-                showNotification(
-                    currentLanguage === 'ro' ? 'Eroare la ștergerea jurnalului' : 'Ошибка при очистке журнала',
-                    true
-                );
-            }
-        }
-        
-        async function loadLogs() {
-            const loadingEl = document.getElementById('log-loading');
-            const contentEl = document.getElementById('log-content');
-            const emptyEl = document.getElementById('log-empty');
-            
-            loadingEl.style.display = 'block';
-            contentEl.style.display = 'none';
-            
-            try {
-                const response = await fetch('/api/journal?limit=100');
-                const data = await response.json();
-                
-                loadingEl.style.display = 'none';
-                contentEl.style.display = 'block';
-                
-                if (!data.success || data.entries.length === 0) {
-                    emptyEl.style.display = 'block';
-                } else {
-                    emptyEl.style.display = 'none';
-                    // Convert database format to display format
-                    const logs = data.entries.map(entry => ({
-                        id: entry.id,
-                        timestamp: entry.created_at,
-                        actionType: entry.title,
-                        listingId: entry.listing_id,
-                        comment: entry.content
-                    }));
-                    displayLogs(logs);
-                }
-            } catch (error) {
-                console.error('Error loading journal entries:', error);
-                loadingEl.style.display = 'none';
-                contentEl.style.display = 'block';
-                emptyEl.style.display = 'block';
-            }
-        }
-        
-        function displayLogs(logs) {
-            const containerEl = document.getElementById('log-excel-container');
-            
-            // Remove all cells except headers (first 4 children)
-            while (containerEl.children.length > 4) {
-                containerEl.removeChild(containerEl.lastChild);
-            }
-            
-            logs.forEach((log, index) => {
-                const actionText = translations[currentLanguage][`log-action-${log.actionType}`] || log.actionType;
-                const time = formatLogTime(log.timestamp);
-                const commentText = log.comment || '';
-                const placeholder = currentLanguage === 'ro' ? 'Adaugă comentariu...' : 'Добавить комментарий...';
-                
-                // Create cells in new order: ID, Action, Comment, Time
-                const idCell = document.createElement('div');
-                idCell.className = 'log-excel-cell';
-                idCell.textContent = log.listingId || '-';
-                
-                // Make ID cell clickable if listing ID exists
-                if (log.listingId) {
-                    idCell.style.cursor = 'pointer';
-                    idCell.style.color = 'var(--accent)';
-                    idCell.style.fontWeight = '500';
-                    idCell.title = currentLanguage === 'ro' ? 'Click pentru a vedea proprietatea' : 'Нажмите, чтобы увидеть объект';
-                    idCell.onclick = () => navigateToListing(log.listingId);
-                }
-                
-                const actionCell = document.createElement('div');
-                actionCell.className = 'log-excel-cell';
-                actionCell.textContent = actionText;
-                
-                const commentCell = document.createElement('div');
-                commentCell.className = 'log-excel-cell log-excel-comment';
-                commentCell.innerHTML = `
-                    <input 
-                        type="text" 
-                        class="log-comment-input" 
-                        value="${commentText}" 
-                        placeholder="${placeholder}"
-                        data-log-id="${log.id}"
-                        onblur="saveLogComment(${log.id}, this.value)"
-                        onkeypress="if(event.key === 'Enter') this.blur()"
-                    />
-                `;
-                
-                const timeCell = document.createElement('div');
-                timeCell.className = 'log-excel-cell';
-                timeCell.innerHTML = time;
-                
-                // Append cells in new order: ID, Action, Comment, Time
-                containerEl.appendChild(idCell);
-                containerEl.appendChild(actionCell);
-                containerEl.appendChild(commentCell);
-                containerEl.appendChild(timeCell);
-            });
-        }
-        
-        function navigateToListing(listingId) {
-            // Switch to listings view
-            switchView('listings');
-            
-            // Wait for view to render, then highlight the listing
-            setTimeout(() => {
-                const listingCard = document.querySelector(`.listing-card[data-listing-id="${listingId}"]`);
-                if (listingCard) {
-                    // Scroll to the listing card
-                    listingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // Add highlight class
-                    listingCard.classList.add('highlight-listing');
-                    
-                    // Remove highlight after 5 seconds
-                    setTimeout(() => {
-                        listingCard.classList.remove('highlight-listing');
-                    }, 5000);
-                } else {
-                    console.warn(`Listing ${listingId} not found in current view`);
-                }
-            }, 300); // Wait for view transition
-        }
-        
-        async function saveLogComment(logId, comment) {
-            try {
-                const response = await fetch(`/api/journal/${logId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        content: comment.trim()
-                    })
-                });
-                const result = await response.json();
-                if (!result.success) {
-                    console.error('Failed to update journal entry:', result.error);
-                }
-            } catch (error) {
-                console.error('Error updating journal entry:', error);
-            }
-        }
-        
-        function getLogIcon(actionType) {
-            const icons = {
-                'added': '✦',
-                'sold': '✓',
-                'available': '○',
-                'sync': '⟳'
-            };
-            return icons[actionType] || '•';
-        }
-        
-        function formatLogTime(timestamp) {
-            const date = new Date(timestamp);
-            
-            // Format time as HH:mm (24h format)
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            const timeStr = `${hours}:${minutes}`;
-            
-            // Format date as dd.mm.yyyy
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            const dateStr = `${day}.${month}.${year}`;
-            
-            // Return HTML with time and date (date in smaller font, aligned right)
-            return `<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
-                        <span style="font-weight: 600;">${timeStr}</span>
-                        <span style="font-size: 0.75rem; opacity: 0.7; text-align: right; align-self: flex-end;">${dateStr}</span>
-                    </div>`;
-        }
         
         // Populate dropdown options based on current language
         function updateDropdownOptions(lang) {
@@ -2480,12 +2165,6 @@
             // Update filter count text
             updateFilterCount();
             updateLastUpdateTime();
-            // Reload logs if log view is active to update language
-            const logView = document.getElementById('log-view');
-            if (logView && logView.classList.contains('active')) {
-                loadLogs();
-            }
-            
             // Update amenities labels if modal is open
             refreshAmenitiesLabels();
             
@@ -5704,13 +5383,46 @@
                         });
                     }
                     
-                    // For comparison: only RO keys (checkboxes use RO keys as values)
-                    const existingAmenitiesRoKeys = [];
-                    if (listing.amenities && listing.amenities.ro) {
-                        existingAmenitiesRoKeys.push(...Object.keys(listing.amenities.ro));
+                    // Collect amenity keys normalized to RO equivalents —
+                    // DB may have RU-only keys from legacy data, but checkboxes use RO keys
+                    const existingAmenitiesROEquiv = new Set();
+                    if (listing.amenities) {
+                        if (listing.amenities.ro) {
+                            Object.keys(listing.amenities.ro).forEach(key => existingAmenitiesROEquiv.add(key));
+                        }
+                        if (listing.amenities.ru) {
+                            Object.keys(listing.amenities.ru).forEach(ruKey => {
+                                // Map RU key → RO equivalent via COMMON_AMENITIES lookup
+                                const found = Object.entries(COMMON_AMENITIES).find(([, ruVal]) => ruVal === ruKey);
+                                if (found) existingAmenitiesROEquiv.add(found[0]);
+                            });
+                        }
                     }
                     
-                    // Store original data for comparison (RO keys only)
+                    // Normalize features from {lang: {section: {key: val}}} to array format
+                    // matching what collectAndFormatFeatures() returns for diff comparison
+                    const normalizedFeatures = [];
+                    const featureSections = { ro: 'Caracteristici', ru: 'Характеристики' };
+                    if (listing.features && typeof listing.features === 'object') {
+                        for (const [lang, sections] of Object.entries(listing.features)) {
+                            if (!sections || typeof sections !== 'object') continue;
+                            for (const [, featureMap] of Object.entries(sections)) {
+                                if (!featureMap || typeof featureMap !== 'object') continue;
+                                for (const [key, value] of Object.entries(featureMap)) {
+                                    if (value && String(value).trim()) {
+                                        normalizedFeatures.push({
+                                            lang: lang,
+                                            section: featureSections[lang] || 'Caracteristici',
+                                            feature_key: key,
+                                            feature_value: String(value).trim()
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Store original data for comparison
                     const originalData = {
                         title_ro: listing.title_ro || '',
                         title_ru: listing.title_ru || '',
@@ -5718,8 +5430,8 @@
                         price_json: listing.price_json || '',
                         listing_type: listing.listing_type || 'for_sale',
                         property_type: listing.property_type || 'apartment',
-                        amenities: existingAmenitiesRoKeys,
-                        features: listing.features || {}  // Add features to original data
+                        amenities: [...existingAmenitiesROEquiv],
+                        features: normalizedFeatures
                     };
                     document.getElementById('edit-original-data').value = JSON.stringify(originalData);
                     
@@ -5851,6 +5563,72 @@
                             initViewListingMap(listing.map_data, listingId);
                         } else {
                             mapSection.style.display = 'none';
+                        }
+                        
+                        // Show log section and populate with journal entries
+                        const logSection = document.getElementById('view-log-section');
+                        const logEntries = document.getElementById('listing-log-entries');
+                        const logEmpty = document.getElementById('listing-log-empty');
+                        if (listing.journal && listing.journal.length > 0) {
+                            logSection.style.display = 'block';
+                            logEmpty.style.display = 'none';
+                            logEntries.innerHTML = '';
+                            // Show entries in reverse chronological order (newest first)
+                            // Only show: created, scraped, deletion/deleted, or price-change entries
+                            const LOG_LABEL_KEYS = {
+                                'created': 'log-action-created',
+                                'scraped': 'log-action-scraped',
+                                'deletion': 'log-action-deleted',
+                                'deleted': 'log-action-deleted'
+                            };
+                            const reversed = [...listing.journal].reverse();
+                            reversed.forEach(entry => {
+                                const title = (entry.title || '').toLowerCase();
+                                const content = (entry.content || '').toLowerCase();
+                                // Filter: show only created/scraped/deletion/deleted/price-change
+                                if (title !== 'created' && title !== 'scraped' && title !== 'deletion' && title !== 'deleted' && !content.includes('price')) return;
+                                const item = document.createElement('div');
+                                item.className = 'listing-log-item';
+                                const time = new Date(entry.created_at);
+                                const timeStr = String(time.getHours()).padStart(2,'0') + ':' + String(time.getMinutes()).padStart(2,'0');
+                                const dateStr = String(time.getDate()).padStart(2,'0') + '.' + String(time.getMonth()+1).padStart(2,'0') + '.' + time.getFullYear();
+                                // Translated action label
+                                const labelKey = LOG_LABEL_KEYS[title];
+                                const actionLabel = labelKey ? (translations[currentLanguage][labelKey] || entry.title) : (content.includes('price') ? (translations[currentLanguage]['log-action-price'] || 'Price Change') : (entry.title || ''));
+                                let commentText = entry.content || '';
+                                // Shorten price change entries: keep only the price portion
+                                if (content.includes('price')) {
+                                    const match = entry.content.match(/price:\s*[^,]+/);
+                                    if (match) commentText = match[0];
+                                }
+                                const timeSpan = document.createElement('span');
+                                timeSpan.className = 'listing-log-time';
+                                timeSpan.textContent = dateStr + ' ' + timeStr;
+                                item.appendChild(timeSpan);
+                                const sep1 = document.createElement('span');
+                                sep1.className = 'listing-log-sep';
+                                sep1.textContent = '|';
+                                item.appendChild(sep1);
+                                const actionSpan = document.createElement('span');
+                                actionSpan.className = 'listing-log-action';
+                                actionSpan.textContent = actionLabel;
+                                item.appendChild(actionSpan);
+                                if (commentText) {
+                                    const sep2 = document.createElement('span');
+                                    sep2.className = 'listing-log-sep';
+                                    sep2.textContent = '|';
+                                    item.appendChild(sep2);
+                                    const commentSpan = document.createElement('span');
+                                    commentSpan.className = 'listing-log-comment';
+                                    commentSpan.textContent = commentText;
+                                    item.appendChild(commentSpan);
+                                }
+                                logEntries.appendChild(item);
+                            });
+                        } else {
+                            logSection.style.display = 'block';
+                            logEmpty.style.display = 'block';
+                            logEntries.innerHTML = '';
                         }
                     } else {
                         // Hide map section in edit mode
@@ -8394,13 +8172,13 @@
                 // Update Romanian title if changed
                 if (newTitleRo !== originalData.title_ro) {
                     updates.title_ro = newTitleRo;
-                    changedFields.push('title_ro');
+                    changedFields.push('title_ro: ' + (newTitleRo || '-'));
                 }
                 
                 // Update Russian title if changed
                 if (newTitleRu !== originalData.title_ru) {
                     updates.title_ru = newTitleRu;
-                    changedFields.push('title_ru');
+                    changedFields.push('title_ru: ' + (newTitleRu || '-'));
                 }
                 
                 // Update contact if changed
@@ -8409,24 +8187,31 @@
                     changedFields.push('contact');
                 }
                 
-                // Update price if changed
+                // Update price if changed — show old → new
                 if (newPriceJson !== originalData.price_json) {
                     updates.price_json = newPriceJson;
-                    changedFields.push('price');
+                    let oldPriceVal = '', newPriceVal = '';
+                    try { const p = JSON.parse(originalData.price_json); oldPriceVal = Object.values(p)[0] || ''; } catch(e) {}
+                    try { const p = JSON.parse(newPriceJson); newPriceVal = Object.values(p)[0] || ''; } catch(e) {}
+                    if (oldPriceVal && newPriceVal && oldPriceVal !== newPriceVal) {
+                        changedFields.push('price: ' + oldPriceVal + ' → ' + newPriceVal);
+                    } else {
+                        changedFields.push('price');
+                    }
                 }
                 
                 // Update listing type if changed
                 const newListingType = document.getElementById('edit-listing-type').value;
                 if (newListingType !== (originalData.listing_type || 'for_sale')) {
                     updates.listing_type = newListingType;
-                    changedFields.push('listing_type');
+                    changedFields.push('listing_type: ' + newListingType);
                 }
                 
                 // Update property type if changed
                 const newPropertyType = document.getElementById('edit-property-type').value;
                 if (newPropertyType !== (originalData.property_type || 'apartment')) {
                     updates.property_type = newPropertyType;
-                    changedFields.push('property_type');
+                    changedFields.push('property_type: ' + newPropertyType);
                 }
                 
                 // Collect selected amenities
@@ -8452,7 +8237,13 @@
                         }
                     });
                     updates.amenities = amenitiesArray;
-                    changedFields.push('amenities');
+                    // List added (+) and removed (-) amenities
+                    const added = [...newAmenitiesSet].filter(a => !originalAmenitiesSet.has(a));
+                    const removed = [...originalAmenitiesSet].filter(a => !newAmenitiesSet.has(a));
+                    const parts = [];
+                    if (added.length > 0) parts.push('+' + added.join(', +'));
+                    if (removed.length > 0) parts.push('-' + removed.join(', -'));
+                    changedFields.push('amenities: ' + parts.join(' '));
                 }
                 
                 // Collect and format features from edit form
@@ -8487,7 +8278,7 @@
                     return;
                 }
                 
-                // Check if features changed (normalize both to same array format)
+                // Check if features changed
                 const originalFeatures = Array.isArray(originalData.features) ? originalData.features.map(f => ({
                     lang: f.lang,
                     section: f.section,
@@ -8496,13 +8287,19 @@
                 })) : [];
                 const featuresChanged = JSON.stringify(featureResult.features) !== JSON.stringify(originalFeatures);
                 
-                                                                                                
                 if (featuresChanged && featureResult.processedCount > 0) {
                     updates.features = featureResult.features;
-                    changedFields.push('features');
-                                    } else if (featureResult.processedCount === 0) {
-                                    } else {
-                                    }
+                    // Find which feature keys actually changed values
+                    const oldMap = {};
+                    originalFeatures.forEach(f => { oldMap[f.lang + '|' + f.feature_key] = f.feature_value; });
+                    const newMap = {};
+                    featureResult.features.forEach(f => { newMap[f.lang + '|' + f.feature_key] = f.feature_value; });
+                    const changedKeys = new Set();
+                    for (const k of new Set([...Object.keys(oldMap), ...Object.keys(newMap)])) {
+                        if (oldMap[k] !== newMap[k]) changedKeys.add(k.split('|')[1]);
+                    }
+                    changedFields.push('features: ' + ([...changedKeys].join(', ') || '(all)'));
+                }
                 
                 // Check if images were reordered
                 const imagesReordered = window.imagesReordered || false;
@@ -9162,8 +8959,6 @@
             const savedTab = localStorage.getItem('dashboardActiveTab');
             if (savedTab === 'statistics' && !statisticsData) {
                 loadStatistics();
-            } else if (savedTab === 'log') {
-                loadLogs();
             }
             
             // Apply saved language preference
